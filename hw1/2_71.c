@@ -14,7 +14,7 @@ int xbyte(packed_t word, int bytenum)
 /* change the function below to give the correct answer */ 
 int myxbyte(packed_t word, int bytenum)
 {
-    return 2;
+  return 2;
 }
 
 int main(void)

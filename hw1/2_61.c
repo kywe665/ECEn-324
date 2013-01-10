@@ -56,7 +56,7 @@ int main() {
   }
 	
   // Enter the numbers you want to test
-  int any_bit_one_test_cases[5] = {2,5,0,11,17};
+  int any_bit_one_test_cases[5] = {-7,-70,0,11,17};
   int i;
   for (i = 0; i < 5; i++) {
 	  printf("any_bit_one(0x%08x) = %d\n", any_bit_one_test_cases[i],
@@ -81,7 +81,7 @@ int main() {
 
   printf("\n");
   // Enter new set of test cases
-  int msb_zero_test_cases[5] = {32,43,0,4294901760,-1};
+  int msb_zero_test_cases[5] = {-7,43,0,4294901760,-1};
   for (i = 0; i < 5; i++) {
 	  printf("msb_zero(0x%08x) = %d\n", msb_zero_test_cases[i],
 	    msb_zero(msb_zero_test_cases[i]));
