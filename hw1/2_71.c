@@ -8,7 +8,7 @@ typedef unsigned packed_t;
 /* extract byte from word. Return as signed integer */
 int xbyte(packed_t word, int bytenum)
 {
-    return (word >> (bytenum <<3)) & 0xFF;
+  return (word >> (bytenum <<3)) & 0xFF;
 }
 
 /* change the function below to give the correct answer */ 
