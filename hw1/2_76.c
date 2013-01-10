@@ -30,14 +30,20 @@ int main(void)
     printf("K=-7: +-<< result = %d, * result = %d\n", result1, result2);
     
     /* Part C */
+    // 0000 0000 1010
+    // 0010 0101 1000
+    // 0000 0010 1000
     K = 60;
-    result1 = 0;   /* replace this 0 with your C expression */
+    result1 = (x << 6) - (x << 2);   /* replace this 0 with your C expression */
     result2 = K * x;
     printf("K=60: +-<< result = %d, * result = %d\n", result1, result2);
     
     /* Part D */
+    // 0000 0000 1010
+    // 1011 1001 1111
+    // 0000 1001 0110
     K = -112;
-    result1 = 0;   /* replace this 0 with your C expression */
+    result1 = (x << 4) - (x << 7);   /* replace this 0 with your C expression */
     result2 = K * x;
     printf("K=-112: +-<< result = %d, * result = %d\n", result1, result2);
     
