@@ -16,7 +16,7 @@
 
 /*
  * Instructions to Students:
- *
+ * 
  * STEP 1: Fill in the following struct with your identifying info.
  */
 team_struct team =
@@ -24,11 +24,11 @@ team_struct team =
    /* Team name: Replace with the identifying string you want to show
       up on the lab webpage with your results.  It need not be your
       Route Y login(s) if you wish to remain anonymous */
-    "", 
+    "DDoS4lif3", 
    /* Student name 1: Replace with the full name of first team member */
-   "",
+   "Kyle Weller",
    /* Login ID 1: Replace with the Route Y login ID of first team member */
-   "",
+   "clkrbj",
 
    /* The following should only be changed if there are two team members */
    /* Student name 2: Full name of the second team member */
@@ -139,7 +139,7 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
-  return 2;
+  return ~(~x| ~y);
 }
 /* 
  * bitNor - ~(x|y) using only ~ and & 
@@ -149,10 +149,7 @@ int bitAnd(int x, int y) {
  *   Rating: 1
  */
 int bitNor(int x, int y) {
-
-
-  return 2;
-
+  return (~x) & (~y);
 }
 /* 
  * copyLSB - set all bits of result to least significant bit of x
@@ -162,7 +159,7 @@ int bitNor(int x, int y) {
  *   Rating: 2
  */
 int copyLSB(int x) {
-  return 2;
+  return (x << 31) >> 31;
 }
 /* 
  * evenBits - return word with all even-numbered bits set to 1
@@ -171,7 +168,10 @@ int copyLSB(int x) {
  *   Rating: 2
  */
 int evenBits(void) {
-  return 2;
+  int everyOther = 85;
+  everyOther += (everyOther << 8);
+  everyOther += (everyOther << 16);
+  return everyOther;
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
@@ -182,7 +182,7 @@ int evenBits(void) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
-  return 2;
+  return (x >> n) & ~((1 << 31) >> n);
 }
 /* 
  * bang - Compute !x without using !
