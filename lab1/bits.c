@@ -168,6 +168,7 @@ int copyLSB(int x) {
  *   Rating: 2
  */
 int evenBits(void) {
+  //start with largest even pattern allowable
   int everyOther = 85;
   everyOther += (everyOther << 8);
   everyOther += (everyOther << 16);
@@ -182,6 +183,10 @@ int evenBits(void) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
+  /*shift arithmetic right by n
+    start with 1 as msb and shift arithmetic right by n
+    negate that number and & it with other half to zero the shifted numbers.
+  */
   return (x >> n) & ~((1 << 31) >> n);
 }
 /* 
@@ -203,7 +208,9 @@ int bang(int x) {
  *   Rating: 4 
  */
 int leastBitPos(int x) {
-  return 2;
+  // x & ~x is usually all 0, but if I add 1 to the complement,
+  // the carry over will spill until the position where the least significant 1 was located.
+  return x & (~x + 1);
 }
 /* 
  * isNotEqual - return 0 if x == y, and 1 otherwise 
@@ -223,7 +230,8 @@ int isNotEqual(int x, int y) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  //negate 2's complement
+  return (~x+0x01);
 }
 /* 
  * isPositive - return 1 if x > 0, return 0 otherwise 
