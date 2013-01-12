@@ -220,7 +220,7 @@ int leastBitPos(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
-  return 2;
+  return x^y;
 }
 /* 
  * negate - return -x 
@@ -241,7 +241,10 @@ int negate(int x) {
  *   Rating: 3
  */
 int isPositive(int x) {
-  return 2;
+  //shift sign bit all the way to LSB then & with 1. Negate
+  int isNotZero = (x != 0);
+  int isNonNeg = !( (x >> 31) & (0x01) );
+  return isNotZero & isNonNeg;
 }
 /* 
  * isNonNegative - return 1 if x >= 0, return 0 otherwise 
@@ -251,7 +254,7 @@ int isPositive(int x) {
  *   Rating: 3
  */
 int isNonNegative(int x) {
-  return 2;
+  return !( (x >> 31) & (0x01) );
 }
 /* 
  * sum3 - x+y+z using only a single '+'
