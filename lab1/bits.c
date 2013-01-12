@@ -220,6 +220,7 @@ int leastBitPos(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
+  //TODO gives 0 still need 1 if true
   return x^y;
 }
 /* 
@@ -242,7 +243,7 @@ int negate(int x) {
  */
 int isPositive(int x) {
   //shift sign bit all the way to LSB then & with 1. Negate
-  int isNotZero = (x != 0);
+  int isNotZero = (~0x0 + x);//TODO gotta change this.
   int isNonNeg = !( (x >> 31) & (0x01) );
   return isNotZero & isNonNeg;
 }
@@ -309,5 +310,7 @@ int abs(int x) {
  *   Rating: 4 
  */
 int isNonZero(int x) {
-  return 2;
+  int value = ((x+ ~0x0) >> 31);
+  int sign = x >> 31;
+  return ((sign ^ value) & value) + 1;
 }
