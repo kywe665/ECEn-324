@@ -1,4 +1,4 @@
-//HW1
+//HW1 ****COMPLETE******
 #include <stdio.h>
 #include <limits.h> // defines INT_MIN and INT_MAX
 
