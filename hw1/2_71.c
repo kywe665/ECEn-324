@@ -1,3 +1,4 @@
+//****COMPLETE*******
 #include <stdio.h>
 
 /* declaration of data type where 4 bytes are packed 
@@ -14,7 +15,10 @@ int xbyte(packed_t word, int bytenum)
 /* change the function below to give the correct answer */ 
 int myxbyte(packed_t word, int bytenum)
 {
-  return 2;
+  // put MSB at bit position 31
+  int left = word << ((3-bytenum) << 3);
+  // move byte into the proper position and peform sign extension
+  return left >> 24;
 }
 
 int main(void)
