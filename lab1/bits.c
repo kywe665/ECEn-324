@@ -291,7 +291,8 @@ int sum3(int x, int y, int z) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  return 2;
+  int z=x+y;
+  return !(((z^x)&(z^y))>>31); 
 }
 /* 
  * abs - absolute value of x (except returns TMin for TMin)
@@ -301,7 +302,8 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int abs(int x) {
-  return 2;
+  int t=x>>31; 
+  return (x^t)+(1&t);
 }
 /* 
  * isNonZero - Check whether x is nonzero using
