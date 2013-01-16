@@ -221,7 +221,7 @@ int leastBitPos(int x) {
  */
 int isNotEqual(int x, int y) {
   //TODO gives 0 still need 1 if true
-  return x^y;
+  return x^y + 1;
 }
 /* 
  * negate - return -x 
