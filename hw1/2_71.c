@@ -17,7 +17,7 @@ int myxbyte(packed_t word, int bytenum)
 {
   // put MSB at bit position 31
   int left = word << ((3-bytenum) << 3);
-  // move byte into the proper position and peform sign extension
+  // move byte into the proper position and perform sign extension
   return left >> 24;
 }
 
