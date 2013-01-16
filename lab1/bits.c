@@ -187,7 +187,7 @@ int logicalShift(int x, int n) {
     start with 1 as msb and shift arithmetic right by n
     negate that number and & it with other half to zero the shifted numbers.
   */
-  return (x >> n) & ~((1 << 31) >> n);
+  return (x >> n) & (~((1 << 31) >> n << 1));
 }
 /* 
  * bang - Compute !x without using !
@@ -197,7 +197,9 @@ int logicalShift(int x, int n) {
  *   Rating: 4 
  */
 int bang(int x) {
-  return 2;
+  int neg = ~x + 1;
+  return (~(neg | x) >> 31) & 1;
+  //return 2;
 }
 /* 
  * leastBitPos - return a mask that marks the position of the
