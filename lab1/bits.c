@@ -277,6 +277,8 @@ int sum3(int x, int y, int z) {
      Fill in code below that computes values for word1 and word2
      without using any '+' operations or calling sum()! 
   ***************************************************************/
+  word1 = x ^ y ^ z;
+  word2 = ( (x & y) | (y & z) | ( x & z) ) << 1;
   /**************************************************************
      Don't change anything below here
   ***************************************************************/
