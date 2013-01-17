@@ -245,9 +245,9 @@ int negate(int x) {
  */
 int isPositive(int x) {
   //shift sign bit all the way to LSB then & with 1. Negate
-  int isNotZero = (~0x0 + x);//TODO gotta change this.
-  int isNonNeg = !( (x >> 31) & (0x01) );
-  return isNotZero & isNonNeg;
+  int sign = x >> 31; //if x is negative, sign will be 0xffffffff
+  int isZero = ~(0x0 ^ x); // if x is zero, isZero will be 0xffffffff
+  return !(!((sign | isZero) ^ (~0x0)));
 }
 /* 
  * isNonNegative - return 1 if x >= 0, return 0 otherwise 
