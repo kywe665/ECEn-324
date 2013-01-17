@@ -139,6 +139,7 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
+  //deMorgans
   return ~(~x| ~y);
 }
 /* 
@@ -149,6 +150,7 @@ int bitAnd(int x, int y) {
  *   Rating: 1
  */
 int bitNor(int x, int y) {
+  //deMorgans
   return (~x) & (~y);
 }
 /* 
@@ -159,6 +161,7 @@ int bitNor(int x, int y) {
  *   Rating: 2
  */
 int copyLSB(int x) {
+  //slide bit all the way up, then all the way down.
   return (x << 31) >> 31;
 }
 /* 
@@ -197,7 +200,9 @@ int logicalShift(int x, int n) {
  *   Rating: 4 
  */
 int bang(int x) {
+  //twos comp
   int neg = ~x + 1;
+  //or w/ orig. flip and grab sign to and with 1
   return (~(neg | x) >> 31) & 1;
   //return 2;
 }
@@ -222,7 +227,7 @@ int leastBitPos(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
-  //TODO gives 0 still need 1 if true
+  // check each bit double bang will ensure zero
   return !!(x^y);
 }
 /* 
@@ -257,6 +262,7 @@ int isPositive(int x) {
  *   Rating: 3
  */
 int isNonNegative(int x) {
+  // shift sign to end and & with 1
   return !( (x >> 31) & (0x01) );
 }
 /* 
@@ -277,8 +283,8 @@ int sum3(int x, int y, int z) {
      Fill in code below that computes values for word1 and word2
      without using any '+' operations or calling sum()! 
   ***************************************************************/
-  word1 = x ^ y ^ z;
-  word2 = ( (x & y) | (y & z) | ( x & z) ) << 1;
+  word1 = x^y^z; //get only different bits
+  word2 = ( (x & y) | (y & z) | (x & z) ) << 1; //get only same bits
   /**************************************************************
      Don't change anything below here
   ***************************************************************/
@@ -293,8 +299,8 @@ int sum3(int x, int y, int z) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  int z=x+y;
-  return !(((z^x)&(z^y))>>31); 
+  int z=x+y; //add em
+  return !(((z^x)&(z^y))>>31); //check if sign bit stayed the same
 }
 /* 
  * abs - absolute value of x (except returns TMin for TMin)
@@ -304,8 +310,8 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int abs(int x) {
-  int t=x>>31; 
-  return (x^t)+(1&t);
+  int sign = x >> 31; //get sign bit
+  return (x ^ sign) + (1 & sign); //flip bits except for maybe last and add one if two's comp
 }
 /* 
  * isNonZero - Check whether x is nonzero using
@@ -316,7 +322,7 @@ int abs(int x) {
  *   Rating: 4 
  */
 int isNonZero(int x) {
-  int value = ((x+ ~0x0) >> 31);
-  int sign = x >> 31;
-  return ((sign ^ value) & value) + 1;
+  int value = ((x+ ~0x0) >> 31); // check if overflow by adding w/ ~0x0
+  int sign = x >> 31; // get sign bit
+  return ((sign ^ value) & value) + 1; //if overflow, 1 if not, 0
 }
