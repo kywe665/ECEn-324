@@ -24,7 +24,7 @@ team_struct team =
    /* Team name: Replace with the identifying string you want to show
       up on the lab webpage with your results.  It need not be your
       Route Y login(s) if you wish to remain anonymous */
-    "DDoS4lif3", 
+    "DDoS",
    /* Student name 1: Replace with the full name of first team member */
    "Kyle Weller",
    /* Login ID 1: Replace with the Route Y login ID of first team member */
