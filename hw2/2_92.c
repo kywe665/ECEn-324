@@ -48,6 +48,10 @@ int main() {
     // Show a few test cases that are interesting to turn in with your hw
     float f = -1;
     printf("Input: %e\n\t My abs: %e\n\t C abs: %e\n", f, u2f(float_absval(f2u(f))), fabs(f));
-
+    float g = -367.235;
+    printf("Input: %e\n\t My abs: %e\n\t C abs: %e\n", g, u2f(float_absval(f2u(g))), fabs(f));
+    float h = 2310.17;
+    printf("Input: %e\n\t My abs: %e\n\t C abs: %e\n", h, u2f(float_absval(f2u(h))), fabs(f));
+    
     return 0;
 }
