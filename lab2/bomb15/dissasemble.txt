@@ -644,6 +644,8 @@ Disassembly of section .text:
  8048e98:	c9                   	leave  
  8048e99:	c3                   	ret    
 
+# 1 1 1 1 1 1  got me past first
+
 08048e9a <phase_2>:
  8048e9a:	55                   	push   %ebp
  8048e9b:	89 e5                	mov    %esp,%ebp
@@ -662,7 +664,7 @@ Disassembly of section .text:
  8048ec5:	3b 43 0c             	cmp    0xc(%ebx),%eax
  8048ec8:	74 05                	je     8048ecf <phase_2+0x35>
  8048eca:	e8 fc 03 00 00       	call   80492cb <explode_bomb>
- 8048ecf:	03 33                	add    (%ebx),%esi
+ 8048ecf:	03 33                	add    (%ebx),%esi                #see 8048ebe > it adds 0?
  8048ed1:	83 c3 04             	add    $0x4,%ebx
  8048ed4:	39 fb                	cmp    %edi,%ebx
  8048ed6:	75 eb                	jne    8048ec3 <phase_2+0x29>
