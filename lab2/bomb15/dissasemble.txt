@@ -575,7 +575,7 @@ Disassembly of section .text:
  8048dc0:	c9                   	leave  
  8048dc1:	c3                   	ret    
 
-08048dc2 <phase_4>:
+08048dc2 <phase_4>: 9
  8048dc2:	55                   	push   %ebp
  8048dc3:	89 e5                	mov    %esp,%ebp
  8048dc5:	83 ec 28             	sub    $0x28,%esp
@@ -600,7 +600,7 @@ Disassembly of section .text:
  8048e09:	c9                   	leave  
  8048e0a:	c3                   	ret    
 
-08048e0b <phase_3>: 2 465
+08048e0b <phase_3>: 2 465 1 873
  8048e0b:	55                   	push   %ebp
  8048e0c:	89 e5                	mov    %esp,%ebp
  8048e0e:	83 ec 28             	sub    $0x28,%esp
