@@ -519,7 +519,7 @@ Disassembly of section .text:
  8048d2e:	5d                   	pop    %ebp
  8048d2f:	c3                   	ret    
 
-08048d30 <phase_5>:
+08048d30 <phase_5>: o`ekma
  8048d30:	55                   	push   %ebp
  8048d31:	89 e5                	mov    %esp,%ebp
  8048d33:	57                   	push   %edi
