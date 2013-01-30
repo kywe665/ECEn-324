@@ -494,7 +494,7 @@ Disassembly of section .text:
  8048ce9:	5d                   	pop    %ebp
  8048cea:	c3                   	ret    
 
-08048ceb <phase_6>:
+08048ceb <phase_6>: 691
  8048ceb:	55                   	push   %ebp
  8048cec:	89 e5                	mov    %esp,%ebp
  8048cee:	53                   	push   %ebx
