@@ -1,0 +1,34 @@
+3_62
+.L3:
+ 23   movl  (%edx), %edi
+ 24   movl  -4(%ecx,%eax,4), %esi
+ 25   movl  %edi, -4(%ecx,%eax,4)
+ 26   addl  $1, %eax
+ 27   movl  %esi, (%edx)
+ 28   addl  $16, %edx
+ 29   cmpl  %ebx, %eax
+ 30   jne .L3
+
+      1          2          3          4   
+       1          2          3          4   
+       1          2          3          4   
+       1          2          3          4   
+
+       1          1          1          1   
+       2          2          2          2   
+       3          3          3          3   
+       4          4          4          4
+
+void transpose_optimized(Marray_t A) {
+  int j;
+  for (int i = 0; i < M; i++)  {
+    int col = A[i][i];
+    j = i;
+    do {
+      int t =  (int) A[i + j];
+      A[i][j] = col;
+      j++;
+      col = (int) A[(M * j) + i];
+    } while (j < i);
+  }
+}
