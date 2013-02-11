@@ -494,7 +494,7 @@ Disassembly of section .text:
  8048ce9:	5d                   	pop    %ebp
  8048cea:	c3                   	ret    
 
-08048ceb <phase_6>:
+08048ceb <phase_6>: 691
  8048ceb:	55                   	push   %ebp
  8048cec:	89 e5                	mov    %esp,%ebp
  8048cee:	53                   	push   %ebx
@@ -519,7 +519,7 @@ Disassembly of section .text:
  8048d2e:	5d                   	pop    %ebp
  8048d2f:	c3                   	ret    
 
-08048d30 <phase_5>:
+08048d30 <phase_5>: o`ekma
  8048d30:	55                   	push   %ebp
  8048d31:	89 e5                	mov    %esp,%ebp
  8048d33:	57                   	push   %edi
@@ -560,7 +560,7 @@ Disassembly of section .text:
  8048d9c:	5d                   	pop    %ebp
  8048d9d:	c3                   	ret    
 
-08048d9e <phase_1>:
+08048d9e <phase_1>:I turned the moon into something I like to call a Death Star.
  8048d9e:	55                   	push   %ebp
  8048d9f:	89 e5                	mov    %esp,%ebp
  8048da1:	83 ec 18             	sub    $0x18,%esp
@@ -575,7 +575,7 @@ Disassembly of section .text:
  8048dc0:	c9                   	leave  
  8048dc1:	c3                   	ret    
 
-08048dc2 <phase_4>:
+08048dc2 <phase_4>: 9
  8048dc2:	55                   	push   %ebp
  8048dc3:	89 e5                	mov    %esp,%ebp
  8048dc5:	83 ec 28             	sub    $0x28,%esp
@@ -600,7 +600,7 @@ Disassembly of section .text:
  8048e09:	c9                   	leave  
  8048e0a:	c3                   	ret    
 
-08048e0b <phase_3>:
+08048e0b <phase_3>: 2 465 1 873
  8048e0b:	55                   	push   %ebp
  8048e0c:	89 e5                	mov    %esp,%ebp
  8048e0e:	83 ec 28             	sub    $0x28,%esp
@@ -644,9 +644,8 @@ Disassembly of section .text:
  8048e98:	c9                   	leave  
  8048e99:	c3                   	ret    
 
-# 1 1 1 1 1 1  got me past first
 
-08048e9a <phase_2>:
+08048e9a <phase_2>: 1 1 1 1 1 1
  8048e9a:	55                   	push   %ebp
  8048e9b:	89 e5                	mov    %esp,%ebp
  8048e9d:	83 ec 48             	sub    $0x48,%esp
