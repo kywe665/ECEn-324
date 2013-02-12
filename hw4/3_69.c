@@ -2,7 +2,6 @@ typedef struct ELE *tree_ptr;
 
 struct ELE {
   long val;
-  long long dummy;
   tree_ptr left;
   tree_ptr right;
 };
