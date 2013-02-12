@@ -1,3 +1,92 @@
+﻿3_58
+int main() {
+  typedef enum{MODE_A, MODE_B, MODE_C, MODE_D, MODE_E} mode_t;
+  int switch3(int *p1, int *p2, mode_t action) {
+    int result = 0;
+    switch(action) {
+      case MODE_A:
+        result = *p1;
+        *p1 = *p2;
+        break;
+      case MODE_B:
+        *p2 += *p1;
+        result = *p2;
+        break;
+      case MODE_C:
+        *p2 += 15;
+        result = *p1;
+        break;
+      case MODE_D:
+        *p2 = *p1;
+        result = 17;
+        break;
+      case MODE_E:
+        result = 17;
+        break;
+      default:
+        result = -1;
+    }
+    return result;
+  }
+}
+switch3.1260:
+	pushl	%ebp
+	movl	%esp, %ebp
+	subl	$16, %esp
+	movl	$0, -4(%ebp)
+	cmpl	$4, 16(%ebp)
+	ja	.L2
+	movl	16(%ebp), %eax
+	sall	$2, %eax
+	movl	.L8(%eax), %eax
+	jmp	*%eax
+.L3:
+	movl	8(%ebp), %eax
+	movl	(%eax), %eax
+	movl	%eax, -4(%ebp)
+	movl	12(%ebp), %eax
+	movl	(%eax), %edx
+	movl	8(%ebp), %eax
+	movl	%edx, (%eax)
+	jmp	.L9
+.L4:
+	movl	12(%ebp), %eax
+	movl	(%eax), %edx
+	movl	8(%ebp), %eax
+	movl	(%eax), %eax
+	addl	%eax, %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
+	movl	12(%ebp), %eax
+	movl	(%eax), %eax
+	movl	%eax, -4(%ebp)
+	jmp	.L9
+.L5:
+	movl	12(%ebp), %eax
+	movl	(%eax), %eax
+	leal	15(%eax), %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
+	movl	8(%ebp), %eax
+	movl	(%eax), %eax
+	movl	%eax, -4(%ebp)
+	jmp	.L9
+.L6:
+	movl	8(%ebp), %eax
+	movl	(%eax), %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
+	movl	$17, -4(%ebp)
+	jmp	.L9
+.L7:
+	movl	$17, -4(%ebp)
+	jmp	.L9
+.L2:
+	movl	$-1, -4(%ebp)
+.L9:
+	movl	-4(%ebp), %eax
+	leave
+	ret
 3_62
 .L3:
  23   movl  (%edx), %edi
@@ -30,5 +119,38 @@ void transpose_optimized(Marray_t A) {
       j++;
       col = (int) A[(M * j) + i];
     } while (j < i);
+  }
+}
+
+3_69
+trace:
+	pushl	%ebp
+	movl	%esp, %ebp
+	movl	8(%ebp), %edx
+	movl	$0, %eax
+	testl	%edx, %edx
+	je	.L3
+	movl	(%edx), %eax
+	testl	%eax, %eax
+	je	.L3
+.L4:
+	movl	16(%edx), %edx
+	movl	(%edx), %eax
+	testl	%eax, %eax
+	jne	.L4
+.L3:
+	popl	%ebp
+	ret
+
+long trace(tree_ptr tp) {
+  struct ELE* current = tp;
+  if(!current) {
+    return 0;
+  }
+  else{
+    while(current->val != 0) {
+      current = current->right;
+    }
+    return current->val;
   }
 }
