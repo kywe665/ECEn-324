@@ -26,21 +26,46 @@ switch3.1260:
 	movl	8(%ebp), %eax
 	movl	(%eax), %eax
 	movl	%eax, -4(%ebp)
+	movl	12(%ebp), %eax
+	movl	(%eax), %edx
+	movl	8(%ebp), %eax
+	movl	%edx, (%eax)
+	jmp	.L9
 .L4:
+	movl	12(%ebp), %eax
+	movl	(%eax), %edx
 	movl	8(%ebp), %eax
 	movl	(%eax), %eax
+	addl	%eax, %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
+	movl	12(%ebp), %eax
+	movl	(%eax), %eax
 	movl	%eax, -4(%ebp)
+	jmp	.L9
 .L5:
+	movl	12(%ebp), %eax
+	movl	(%eax), %eax
+	leal	15(%eax), %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
 	movl	8(%ebp), %eax
 	movl	(%eax), %eax
 	movl	%eax, -4(%ebp)
+	jmp	.L9
 .L6:
 	movl	8(%ebp), %eax
-	movl	(%eax), %eax
-	movl	%eax, -4(%ebp)
+	movl	(%eax), %edx
+	movl	12(%ebp), %eax
+	movl	%edx, (%eax)
+	movl	$17, -4(%ebp)
+	jmp	.L9
 .L7:
 	movl	$17, -4(%ebp)
+	jmp	.L9
 .L2:
+	movl	$-1, -4(%ebp)
+.L9:
 	movl	-4(%ebp), %eax
 	leave
 	ret
