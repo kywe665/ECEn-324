@@ -1,0 +1,30 @@
+3A
+
+  1 int main(int argc, char* argv[])
+  2 {
+  3     int size[536870848];//This is maximum for -m32
+  4     //-m64 can allow for a much larger array, up to 9 orders of magnitude la    rger
+  5     return 0;
+
+
+3B
+Console output:
+65170
+65171
+65172
+Segmentation fault (core dumped)
+
+FILE:
+  1 #include <stdio.h>
+  2
+  3 void recurse(unsigned int i)
+  4 {
+  5   printf("%d\n", i);
+  6   recurse(i+1); // 523756
+  7 }
+  8
+  9 int main()
+ 10 {
+ 11   recurse(0);
+ 12   return 0; 
+
