@@ -1,3 +1,19 @@
+4.44
+Intels Documentation says the following:
+IF StackAddrSize = 32
+  THEN
+    IF OperandSize = 32
+      THEN
+        DEST ? SS:ESP; (* Copy a doubleword *)
+        ESP ? ESP + 4;
+      ELSE (* OperandSize = 16*)
+        ...
+    FI;
+...
+
+But it has a special note for pop %esp
+The POP ESP instruction increments the stack pointer (ESP) before data at the old top of stack is written into the destination.
+
 3A
 
   1 int main(int argc, char* argv[])
@@ -27,4 +43,5 @@ FILE:
  10 {
  11   recurse(0);
  12   return 0; 
+
 
