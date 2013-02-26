@@ -1,0 +1,142 @@
+﻿4_45
+#include <stdio.h>
+
+#define SIZE 6
+
+int array1[SIZE+1] = { 0xdddd, 0xeeee, 0xbbbb, 0xaaaa, 0xffff, 0xcccc, 0x0101 } ;
+int array2[SIZE+1] = { 0xdddd, 0xeeee, 0xbbbb, 0xaaaa, 0xffff, 0xcccc, 0x0101 } ;
+    
+void bubble_a(int *data, int count)
+{
+    /* code from book goes here */
+  int i, last;
+  for (last = count-1; last > 0; last--) {
+    for(i = 0; i < last; i++) {
+      if(data[i+1] < data[i]) {
+        //swap adjacent
+        int t = data[i+1];
+        data[i+1] = data[i];
+        data[i] = t;
+      }
+    }
+  }
+}
+
+void bubble_p(int *arr, int n)  /* pointer version */
+{
+    /* pointer version of code you write */
+  int i,j,temp;
+  for(i=0;i<(n-1);i++) {
+		for(j=0;j<(n-1-i);j++) {
+			if(*(arr+j)>*(arr+(j+1))) {
+				temp=*(arr+j);
+				*(arr+j)=*(arr+(j+1));
+				*(arr+(j+1))=temp;
+			}
+		}
+  }
+}
+
+int main()
+{
+    int i;
+
+    printf("array version\n");
+    printf("  Before: ");
+    for (i = 0; i < SIZE; i++)
+	printf("0x%.4x ", array1[i]);
+    printf("\n");
+    bubble_a(array1, SIZE);
+    printf("  After:  ");
+    for (i = 0; i < SIZE; i++)
+	printf("0x%.4x ", array1[i]);
+    printf("\n");
+    printf("pointer version\n");
+    printf("  Before: ");
+    for (i = 0; i < SIZE; i++)
+	printf("0x%.4x ", array2[i]);
+    printf("\n");
+    bubble_p(array2, SIZE);
+    printf("  After:  ");
+    for (i = 0; i < SIZE; i++)
+	printf("0x%.4x ", array2[i]);
+    printf("\n");
+}
+
+# Execution begins at address 0
+        .pos 0
+init:   irmovl Stack,%esp     # Set up stack pointer
+        irmovl Stack,%ebp     # Set up base pointer
+        jmp Main              # Execute main program
+
+# Array of 7 elements
+        .align 4
+array:  .long 0xdddd          # These values should get sorted
+        .long 0xeeee
+        .long 0xbbbb
+        .long 0xaaaa
+        .long 0xffff
+        .long 0xcccc
+        .long 0x0101          # This value should not change
+
+Main:   irmovl $6,%eax
+        pushl %eax            # push array size 
+        irmovl array,%edx
+        pushl %edx            # push array address
+        call Bubble           # Bubble(array,6)
+        halt
+
+# void Bubble(int *data, int count)
+Bubble:
+        pushl	%ebp
+        rrmovl	%esp, %ebp
+        pushl	%esi
+        rrmovl	12(%ebp), %esi
+        pushl	%ebx
+        rrmovl	8(%ebp), %edx
+        subl	$1, %esi
+        testl	%esi, %esi
+        jle	.L17
+
+.L12:
+        xorl	%eax, %eax
+        testl	%esi, %esi
+        jle	.L16
+
+.L18:
+        rrmovl	(%edx,%eax,4), %ecx
+        rrmovl	4(%edx,%eax,4), %ebx
+        cmpl	%ebx, %ecx
+        jle	.L13
+        rrmovl	%ebx, (%edx,%eax,4)
+        rrmovl	%ecx, 4(%edx,%eax,4)
+.L13:
+        addl	$1, %eax
+        cmpl	%eax, %esi
+        jne	.L18
+.L16:
+        subl	$1, %esi
+        jne	.L12
+.L17:
+        popl	%ebx
+        popl	%esi
+        popl	%ebp
+
+        ret                   # and ends with a ret instruction
+
+        .pos 0x100
+Stack:                        # Stack goes here, grows down
+
+4_47
+Icode:ifun ← M1[PC]
+rA:rB ← M1[PC+1]
+valC ← M4[PC+2]
+valP ← PC+6
+
+valB ← R[rB]
+
+valE ← valB + valC
+set condition codes
+
+R[rB] ← valE
+PC ← valP
