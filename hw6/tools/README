@@ -1,0 +1,23 @@
+The files in this folder correspond to two useful programs:
+
+yas   
+
+The Y86 assembler. This takes a Y86 assembly code file with extension
+.ys and generates a file with extension .yo. The generated file
+contains an ASCII version of the object code, such as that shown in
+the text in Figure 4.8.  To assemble the program in
+file asum.ys in this directory, we use the command:
+unix> yas ./asum.ys
+
+yis
+
+The Y86 instruction simulator. This program executes the
+instructions in a Y86 machine-level program according to the
+instruction set definition. For example, suppose you want to run the
+program asum.yo. Simply run:
+
+ yis ./asum.yo 
+
+YIS simulates the execution of the program
+and then prints changes to any registers or memory loca-
+tions on the terminal, as described in the text on page 348.
