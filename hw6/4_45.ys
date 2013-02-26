@@ -23,7 +23,40 @@ Main:   irmovl $6,%eax
 
 # void Bubble(int *data, int count)
 Bubble:
-        ...                   # your handtranslated code goes here
+        pushl	%ebp
+        rrmovl	%esp, %ebp
+        pushl	%esi
+        rrmovl	12(%ebp), %esi
+        pushl	%ebx
+        rrmovl	8(%ebp), %edx
+        subl	$1, %esi
+        testl	%esi, %esi
+        jle	.L17
+
+.L12:
+        xorl	%eax, %eax
+        testl	%esi, %esi
+        jle	.L16
+
+.L18:
+        rrmovl	(%edx,%eax,4), %ecx
+        rrmovl	4(%edx,%eax,4), %ebx
+        cmpl	%ebx, %ecx
+        jle	.L13
+        rrmovl	%ebx, (%edx,%eax,4)
+        rrmovl	%ecx, 4(%edx,%eax,4)
+.L13:
+        addl	$1, %eax
+        cmpl	%eax, %esi
+        jne	.L18
+.L16:
+        subl	$1, %esi
+        jne	.L12
+.L17:
+        popl	%ebx
+        popl	%esi
+        popl	%ebp
+
         ret                   # and ends with a ret instruction
 
         .pos 0x100
