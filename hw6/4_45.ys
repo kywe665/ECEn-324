@@ -1,0 +1,30 @@
+# Execution begins at address 0
+        .pos 0
+init:   irmovl Stack,%esp     # Set up stack pointer
+        irmovl Stack,%ebp     # Set up base pointer
+        jmp Main              # Execute main program
+
+# Array of 7 elements
+        .align 4
+array:  .long 0xdddd          # These values should get sorted
+        .long 0xeeee
+        .long 0xbbbb
+        .long 0xaaaa
+        .long 0xffff
+        .long 0xcccc
+        .long 0x0101          # This value should not change
+
+Main:   irmovl $6,%eax
+        pushl %eax            # push array size 
+        irmovl array,%edx
+        pushl %edx            # push array address
+        call Bubble           # Bubble(array,6)
+        halt
+
+# void Bubble(int *data, int count)
+Bubble:
+        ...                   # your handtranslated code goes here
+        ret                   # and ends with a ret instruction
+
+        .pos 0x100
+Stack:                        # Stack goes here, grows down
