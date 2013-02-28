@@ -1,0 +1,50 @@
+#
+# Kyle Weller
+# clkrbj 62-924-1035
+# 
+# sum elements of a linked list
+# return sum in eax
+# manually control frame pointers
+#
+# Initial code
+.pos 0
+irmovl Stack,%esp
+rrmovl %esp,%ebp
+irmovl ele1,%edx
+pushl %edx
+call sum_list
+halt
+# Sample linked list
+.align 4
+ele1:
+.long 0x00a
+.long ele2
+ele2:
+.long 0x0b0
+.long ele3
+ele3:
+.long 0xc00
+.long 0
+rsum_list:
+      pushl   %ebp
+      rrmovl  %esp,%ebp
+      mrmovl  0x8(%ebp),%edx			# ls
+      xorl    %eax,%eax			# val=0
+      pushl   %ebx					# save %ebx
+      andl   	%edx,%edx			# ls==0?
+      je     	End					# if so, gotoEnd
+      irmovl  $0xc,%esi				# 12
+      subl    %esi,%esp				# %esp-=12
+      mrmovl  (%edx),%ebx			       # ls->val
+      mrmovl	0x4(%edx),%ecx			   # ls->next
+      pushl  	%ecx					         # push ls->next as the first parameter
+      call    rsum_list				       # call rsum_list by recursion
+      addl    %ebx,%eax			         # val+=ls->val
+End:  mrmovl  0xfffffffc(%ebp),%ebx  #restore %ebx
+	    rrmovl 	%ebp, %esp
+	    popl  	%ebp  
+	    ret 
+.pos 0x200
+Stack:
+#Make sure to have newline after last line of code
+

@@ -1,0 +1,57 @@
+                      | #
+                      | # Include your name and ID here.
+                      | # -To avoid potential problems with yas,
+                      | # leave some comments before .pos0
+                      | #
+                      | # Initial code
+  0x000:              | .pos 0
+  0x000: 308400020000 | irmovl Stack,%esp
+  0x006: 2045         | rrmovl %esp,%ebp
+  0x008: 308218000000 | irmovl ele1,%edx
+  0x00e: a028         | pushl %edx
+  0x010: 8030000000   | call sum_list
+  0x015: 10           | halt
+                      | # Sample linked list
+  0x018:              | .align 4
+  0x018:              | ele1:
+  0x018: 0a000000     | .long 0x00a
+  0x01c: 20000000     | .long ele2
+  0x020:              | ele2:
+  0x020: b0000000     | .long 0x0b0
+  0x024: 28000000     | .long ele3
+  0x028:              | ele3:
+  0x028: 000c0000     | .long 0xc00
+  0x02c: 00000000     | .long 0
+  0x030:              | sum_list:
+  0x030: a058         | pushl   %ebp  
+  0x032: 2045         |     rrmovl  %esp, %ebp  
+  0x034: 308210000000 |     irmovl  $16, %edx  
+  0x03a: 6124         |     subl    %edx, %esp  
+  0x03c: 308200000000 |     irmovl  $0, %edx  
+  0x042: 4025fcffffff |     rmmovl  %edx, -4(%ebp)  
+  0x048: 7079000000   |     jmp     L2  
+                      | 
+  0x04d:              | L3:
+  0x04d: 500508000000 |     mrmovl  8(%ebp), %eax
+  0x053: 500000000000 |     mrmovl  (%eax), %eax
+  0x059: 5025fcffffff |     mrmovl  -4(%ebp), %edx
+  0x05f: 6002         |     addl    %eax, %edx
+  0x061: 4025fcffffff |     rmmovl  %edx, -4(%ebp)
+  0x067: 500508000000 |     mrmovl  8(%ebp), %eax
+  0x06d: 500004000000 |     mrmovl  4(%eax), %eax
+  0x073: 400508000000 |     rmmovl  %eax, 8(%ebp)
+                      | 
+  0x079:              | L2:
+  0x079: 308100000000 |     irmovl  $0, %ecx
+  0x07f: 502508000000 |     mrmovl  8(%ebp), %edx
+  0x085: 6112         |     subl    %ecx, %edx
+  0x087: 744d000000   |     jne     L3
+  0x08c: 5005fcffffff |     mrmovl  -4(%ebp), %eax
+  0x092: 2054         |     rrmovl  %ebp, %esp
+  0x094: b058         |     popl    %ebp
+                      |     #halt #THIS DOESN'T BELONG. COMMENT OUT TO SEE BAD BEHAVIOR.
+  0x096: 90           |     ret
+  0x200:              | .pos 0x200
+  0x200:              | Stack:
+                      | #Make sure to have newline after last line of code
+                      | 
