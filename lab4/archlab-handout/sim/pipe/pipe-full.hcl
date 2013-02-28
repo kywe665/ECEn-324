@@ -1,3 +1,5 @@
+# Kyle Weller
+# clkrbj
 #/* $begin pipe-all-hcl */
 ####################################################################
 #    HCL Description of Control for Pipelined Y86 Processor        #
@@ -122,7 +124,8 @@ int f_pc = [
 	# Mispredicted branch.  Fetch at incremented PC
 	M_icode == IJXX && !M_Bch : M_valA;
 	# Completion of RET instruction.
-	W_icode == IRET : W_valM;
+	W_icode == IRET && D_icode==0: W_valM;
+	M_icode == IPUSHL && E_icode==IRET : M_valA;
 	# Default: Use predicted value of PC
 	1 : F_predPC;
 ];
@@ -130,15 +133,15 @@ int f_pc = [
 # Does fetched instruction require a regid byte?
 bool need_regids =
 	f_icode in { IRRMOVL, IOPL, IPUSHL, IPOPL, 
-		     IIRMOVL, IRMMOVL, IMRMOVL };
+		     IIRMOVL, IRMMOVL, IMRMOVL, IIADDL  };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	f_icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL };
+	f_icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL, IIADDL  };
 
 bool instr_valid = f_icode in 
 	{ INOP, IHALT, IRRMOVL, IIRMOVL, IRMMOVL, IMRMOVL,
-	       IOPL, IJXX, ICALL, IRET, IPUSHL, IPOPL };
+	       IOPL, IJXX, ICALL, IRET, IPUSHL, IPOPL, IIADDL, ILEAVE };
 
 # Predict next value of PC
 int new_F_predPC = [
@@ -154,26 +157,29 @@ int new_F_predPC = [
 int new_E_srcA = [
 	D_icode in { IRRMOVL, IRMMOVL, IOPL, IPUSHL  } : D_rA;
 	D_icode in { IPOPL, IRET } : RESP;
+	D_icode in { ILEAVE } : REBP;
 	1 : RNONE; # Don't need register
 ];
 
 ## What register should be used as the B source?
 int new_E_srcB = [
-	D_icode in { IOPL, IRMMOVL, IMRMOVL  } : D_rB;
+	D_icode in { IOPL, IRMMOVL, IMRMOVL, IIADDL  } : D_rB;
 	D_icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+	D_icode in { ILEAVE } : REBP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the E destination?
 int new_E_dstE = [
-	D_icode in { IRRMOVL, IIRMOVL, IOPL} : D_rB;
-	D_icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+	D_icode in { IRRMOVL, IIRMOVL, IOPL, IIADDL} : D_rB;
+	D_icode in { IPUSHL, IPOPL, ICALL, IRET, ILEAVE } : RESP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the M destination?
 int new_E_dstM = [
-D_icode in { IMRMOVL, IPOPL } : D_rA;
+	D_icode in { IMRMOVL, IPOPL } : D_rA;
+	D_icode in { ILEAVE } : REBP;
 	1 : RNONE;  # Don't need register
 ];
 
@@ -200,19 +206,20 @@ int new_E_valB = [
 
 ################ Execute Stage #####################################
 
+	
 ## Select input A to ALU
 int aluA = [
 	E_icode in { IRRMOVL, IOPL } : E_valA;
-	E_icode in { IIRMOVL, IRMMOVL, IMRMOVL } : E_valC;
+	E_icode in { IIRMOVL, IRMMOVL, IMRMOVL, IIADDL } : E_valC;
 	E_icode in { ICALL, IPUSHL } : -4;
-	E_icode in { IRET, IPOPL } : 4;
+	E_icode in { IRET, IPOPL, ILEAVE } : 4;
 	# Other instructions don't need ALU
 ];
 
 ## Select input B to ALU
 int aluB = [
 	E_icode in { IRMMOVL, IMRMOVL, IOPL, ICALL, 
-		      IPUSHL, IRET, IPOPL } : E_valB;
+		      IPUSHL, IRET, IPOPL, IIADDL, ILEAVE } : E_valB;
 	E_icode in { IRRMOVL, IIRMOVL } : 0;
 	# Other instructions don't need ALU
 ];
@@ -224,20 +231,26 @@ int alufun = [
 ];
 
 ## Should the condition codes be updated?
-bool set_cc = E_icode == IOPL;
+bool set_cc =E_icode in { IOPL, IIADDL};
+
+int new_M_valA=[
+	 M_icode in { IMRMOVL, IPOPL, ILEAVE  } && E_icode in { IRMMOVL, IPUSHL}
+		 && M_dstM ==E_srcA && M_dstM !=E_srcB: m_valM;
+	1 : E_valA;  # Use value read from register file
+];
 
 
 ################ Memory Stage ######################################
 
 ## Select memory address
 int mem_addr = [
-M_icode in { IRMMOVL, IPUSHL, ICALL, IMRMOVL } : M_valE;
-	M_icode in { IPOPL, IRET } : M_valA;
+	M_icode in { IRMMOVL, IPUSHL, ICALL, IMRMOVL } : M_valE;
+	M_icode in { IPOPL, IRET, ILEAVE } : M_valA;
 	# Other instructions don't need address
 ];
 
 ## Set read control signal
-bool mem_read = M_icode in { IMRMOVL, IPOPL, IRET };
+bool mem_read = M_icode in { IMRMOVL, IPOPL, IRET, ILEAVE };
 
 ## Set write control signal
 bool mem_write = M_icode in { IRMMOVL, IPUSHL, ICALL };
@@ -250,25 +263,34 @@ bool mem_write = M_icode in { IRMMOVL, IPUSHL, ICALL };
 bool F_bubble = 0;
 bool F_stall =
 	# Conditions for a load/use hazard
-	E_icode in { IMRMOVL, IPOPL } &&
-	 E_dstM in { d_srcA, d_srcB } ||
+	 E_icode in { IMRMOVL, IPOPL, ILEAVE }
+	 	&& !(D_icode in { IRMMOVL, IPUSHL} && E_dstM == d_srcA && E_dstM != d_srcB) 
+		 && E_dstM in { d_srcA, d_srcB } ||
 	# Stalling at fetch while ret passes through pipeline
-	IRET in { D_icode, E_icode, M_icode };
+	(IRET == D_icode) ||
+	(IRET == E_icode && IPUSHL!=M_icode) ||
+	(IRET == M_icode && IPUSHL!=W_icode) ;
+	#IRET in { D_icode, E_icode, M_icode };
 
 # Should I stall or inject a bubble into Pipeline Register D?
 # At most one of these can be true.
 bool D_stall = 
 	# Conditions for a load/use hazard
-	E_icode in { IMRMOVL, IPOPL } &&
-	 E_dstM in { d_srcA, d_srcB };
+	E_icode in { IMRMOVL, IPOPL, ILEAVE  }
+	 	&& !(D_icode in { IRMMOVL, IPUSHL} && E_dstM ==d_srcA && E_dstM != d_srcB)
+	 	&& E_dstM in { d_srcA, d_srcB };
 
 bool D_bubble =
 	# Mispredicted branch
 	(E_icode == IJXX && !e_Bch) ||
 	# Stalling at fetch while ret passes through pipeline
 	# but not condition for a load/use hazard
-	!(E_icode in { IMRMOVL, IPOPL } && E_dstM in { d_srcA, d_srcB }) &&
-	  IRET in { D_icode, E_icode, M_icode };
+	!(E_icode in { IMRMOVL, IPOPL, ILEAVE  } 
+		 && !(D_icode in { IRMMOVL, IPUSHL} && E_dstM ==d_srcA && E_dstM != d_srcB)
+		&& E_dstM in { d_srcA, d_srcB }) 
+	&& 	((IRET == D_icode) ||
+	(IRET == E_icode && IPUSHL!=M_icode) ||
+	(IRET == M_icode && IPUSHL!=W_icode))  ;
 
 # Should I stall or inject a bubble into Pipeline Register E?
 # At most one of these can be true.
@@ -277,8 +299,9 @@ bool E_bubble =
 	# Mispredicted branch
 	(E_icode == IJXX && !e_Bch) ||
 	# Conditions for a load/use hazard
-	E_icode in { IMRMOVL, IPOPL } &&
-	   E_dstM in { d_srcA, d_srcB};
+	E_icode in { IMRMOVL, IPOPL, ILEAVE  } 
+		&& !(D_icode in { IRMMOVL, IPUSHL} &&E_dstM ==d_srcA && E_dstM != d_srcB)
+		&& E_dstM in { d_srcA, d_srcB};
 
 # Should I stall or inject a bubble into Pipeline Register M?
 # At most one of these can be true.
