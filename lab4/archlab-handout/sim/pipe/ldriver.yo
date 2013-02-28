@@ -2,18 +2,20 @@
                       | # Test for copying block of size 63;
                       | #######################################################################
   0x000:              | 	.pos 0
-  0x000: 3084b8020000 | main:	irmovl Stack, %esp  	# Set up stack pointer
-  0x006: 3085b8020000 | 	irmovl Stack, %ebp  	# Set up base pointer
+  0x000: 3084780f0000 | main:	irmovl Stack, %esp  	# Set up stack pointer
+  0x006: 3085780f0000 | 	irmovl Stack, %ebp  	# Set up base pointer
                       | 
                       | 	# Set up arguments for copy function and then invoke it
   0x00c: 30803f000000 | 	irmovl 63, %eax		# src and dst have 63 elements
   0x012: a008         | 	pushl %eax
-  0x014: 308090010000 | 	irmovl dest, %eax	# dst array
+  0x014: 3080500e0000 | 	irmovl dest, %eax	# dst array
   0x01a: a008         | 	pushl %eax
-  0x01c: 30808c000000 | 	irmovl src, %eax	# src array
+  0x01c: 3080440d0000 | 	irmovl src, %eax	# src array
   0x022: a008         | 	pushl %eax
   0x024: 802a000000   | 	call ncopy		 
   0x029: 10           | 	halt			# should halt with num nonzeros in %eax
+                      | # Kyle Weller
+                      | # clkrbj
                       | #/* $begin ncopy-ys */
                       | ##################################################################
                       | # ncopy.ys - Copy a src block of len ints to dst.
@@ -25,42 +27,833 @@
                       | #
                       | ##################################################################
                       | 	# Function prologue. Do not modify.
-  0x02a: a058         | ncopy:	pushl %ebp		# Save old frame pointer
-  0x02c: 2045         | 	rrmovl %esp,%ebp	# Set up new frame pointer
-  0x02e: a068         | 	pushl %esi		# Save callee-save regs
+  0x02a: a058         | ncopy:	pushl %ebp						# Save old frame pointer
+  0x02c: 2045         | 	rrmovl %esp,%ebp					# Set up new frame pointer
+  0x02e: a068         | 	pushl %esi						# Save callee-save regs
   0x030: a038         | 	pushl %ebx
-  0x032: 503508000000 | 	mrmovl 8(%ebp),%ebx	# src
-  0x038: 50150c000000 | 	mrmovl 12(%ebp),%ecx	# dst
-  0x03e: 502510000000 | 	mrmovl 16(%ebp),%edx	# len
+  0x032: 503508000000 | 	mrmovl 8(%ebp),%ebx					# src
+  0x038: 50150c000000 | 	mrmovl 12(%ebp),%ecx					# dst
+  0x03e: 502510000000 | 	mrmovl 16(%ebp),%edx					# len
                       | 
-                      | 	# Loop header
-  0x044: 6366         | 	xorl %esi,%esi		# count = 0;
-  0x046: 6222         | 	andl %edx,%edx		# len <= 0?
-  0x048: 7181000000   | 	jle Done		# if so, goto Done:
+                      | 	# Loop header	
+  0x044: 2020         | 	rrmovl %edx, %eax					# count=len
+  0x046: c082c4ffffff | 	iaddl $-60, %edx					# like P409 limit = length-2 the increasment is 61
+  0x04c: 715d060000   | 	jle Out							# if len<=0, goto Out
                       | 
-                      | 	# Loop body.
-  0x04d: 500300000000 | Loop:	mrmovl (%ebx), %eax	# read val from src...
-  0x053: 400100000000 | 	rmmovl %eax, (%ecx)	# ...and store it to dst
-  0x059: 6200         | 	andl %eax, %eax		# val <= 0?
-  0x05b: 7168000000   | 	jle Npos		# if so, goto Npos:
-  0x060: 308701000000 | 	irmovl $1, %edi
-  0x066: 6076         | 	addl %edi, %esi		# count++
-  0x068: 308701000000 | Npos:	irmovl $1, %edi
-  0x06e: 6172         | 	subl %edi, %edx		# len--
-  0x070: 308704000000 | 	irmovl $4, %edi
-  0x076: 6073         | 	addl %edi, %ebx		# src++
-  0x078: 6071         | 	addl %edi, %ecx		# dst++
-  0x07a: 6222         | 	andl %edx,%edx		# len > 0?
-  0x07c: 764d000000   | 	jg Loop			# if so, goto Loop:
                       | 
+  0x051: 506300000000 | Loop1:	mrmovl 0(%ebx), %esi					# read val from (src + 0)...
+  0x057: 406100000000 | 	rmmovl %esi, 0(%ecx)					# ...and store it to (dst + 0
+  0x05d: 6266         | 	andl %esi, %esi						# val > 0?
+  0x05f: 766a000000   | 	jg Pos1							# if so, goto Pos1:
+  0x064: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x06a: 506304000000 | Pos1:	mrmovl 4(%ebx), %esi					# read val from (src + 1)...
+  0x070: 406104000000 | 	rmmovl %esi, 4(%ecx)					# ...and store it to (dst + 1
+  0x076: 6266         | 	andl %esi, %esi						# val > 0?
+  0x078: 7683000000   | 	jg Pos2							# if so, goto Pos2:
+  0x07d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x083: 506308000000 | Pos2:	mrmovl 8(%ebx), %esi					# read val from (src + 2)...
+  0x089: 406108000000 | 	rmmovl %esi, 8(%ecx)					# ...and store it to (dst + 2
+  0x08f: 6266         | 	andl %esi, %esi						# val > 0?
+  0x091: 769c000000   | 	jg Pos3							# if so, goto Pos3:
+  0x096: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x09c: 50630c000000 | Pos3:	mrmovl 12(%ebx), %esi					# read val from (src + 3)...
+  0x0a2: 40610c000000 | 	rmmovl %esi, 12(%ecx)					# ...and store it to (dst + 3
+  0x0a8: 6266         | 	andl %esi, %esi						# val > 0?
+  0x0aa: 76b5000000   | 	jg Pos4							# if so, goto Pos4:
+  0x0af: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x0b5: 506310000000 | Pos4:	mrmovl 16(%ebx), %esi					# read val from (src + 4)...
+  0x0bb: 406110000000 | 	rmmovl %esi, 16(%ecx)					# ...and store it to (dst + 4
+  0x0c1: 6266         | 	andl %esi, %esi						# val > 0?
+  0x0c3: 76ce000000   | 	jg Pos5							# if so, goto Pos5:
+  0x0c8: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x0ce: 506314000000 | Pos5:	mrmovl 20(%ebx), %esi					# read val from (src + 5)...
+  0x0d4: 406114000000 | 	rmmovl %esi, 20(%ecx)					# ...and store it to (dst + 5
+  0x0da: 6266         | 	andl %esi, %esi						# val > 0?
+  0x0dc: 76e7000000   | 	jg Pos6							# if so, goto Pos6:
+  0x0e1: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x0e7: 506318000000 | Pos6:	mrmovl 24(%ebx), %esi					# read val from (src + 6)...
+  0x0ed: 406118000000 | 	rmmovl %esi, 24(%ecx)					# ...and store it to (dst + 6
+  0x0f3: 6266         | 	andl %esi, %esi						# val > 0?
+  0x0f5: 7600010000   | 	jg Pos7							# if so, goto Pos7:
+  0x0fa: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x100: 50631c000000 | Pos7:	mrmovl 28(%ebx), %esi					# read val from (src + 7)...
+  0x106: 40611c000000 | 	rmmovl %esi, 28(%ecx)					# ...and store it to (dst + 7
+  0x10c: 6266         | 	andl %esi, %esi						# val > 0?
+  0x10e: 7619010000   | 	jg Pos8							# if so, goto Pos8:
+  0x113: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x119: 506320000000 | Pos8:	mrmovl 32(%ebx), %esi					# read val from (src + 8)...
+  0x11f: 406120000000 | 	rmmovl %esi, 32(%ecx)					# ...and store it to (dst + 8
+  0x125: 6266         | 	andl %esi, %esi						# val > 0?
+  0x127: 7632010000   | 	jg Pos9							# if so, goto Pos9:
+  0x12c: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x132: 506324000000 | Pos9:	mrmovl 36(%ebx), %esi					# read val from (src + 9)...
+  0x138: 406124000000 | 	rmmovl %esi, 36(%ecx)					# ...and store it to (dst + 9
+  0x13e: 6266         | 	andl %esi, %esi						# val > 0?
+  0x140: 764b010000   | 	jg Pos10						# if so, goto Pos10:
+  0x145: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x14b: 506328000000 | Pos10:	mrmovl 40(%ebx), %esi					# read val from (src + 10)...
+  0x151: 406128000000 | 	rmmovl %esi, 40(%ecx)					# ...and store it to (dst + 10
+  0x157: 6266         | 	andl %esi, %esi						# val > 0?
+  0x159: 7664010000   | 	jg Pos11						# if so, goto Pos11:
+  0x15e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x164: 50632c000000 | Pos11:	mrmovl 44(%ebx), %esi					# read val from (src + 11)...
+  0x16a: 40612c000000 | 	rmmovl %esi, 44(%ecx)					# ...and store it to (dst + 11
+  0x170: 6266         | 	andl %esi, %esi						# val > 0?
+  0x172: 767d010000   | 	jg Pos12						# if so, goto Pos12:
+  0x177: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x17d: 506330000000 | Pos12:	mrmovl 48(%ebx), %esi					# read val from (src + 12)...
+  0x183: 406130000000 | 	rmmovl %esi, 48(%ecx)					# ...and store it to (dst + 12
+  0x189: 6266         | 	andl %esi, %esi						# val > 0?
+  0x18b: 7696010000   | 	jg Pos13						# if so, goto Pos13:
+  0x190: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x196: 506334000000 | Pos13:	mrmovl 52(%ebx), %esi					# read val from (src + 13)...
+  0x19c: 406134000000 | 	rmmovl %esi, 52(%ecx)					# ...and store it to (dst + 13
+  0x1a2: 6266         | 	andl %esi, %esi						# val > 0?
+  0x1a4: 76af010000   | 	jg Pos14						# if so, goto Pos14:
+  0x1a9: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x1af: 506338000000 | Pos14:	mrmovl 56(%ebx), %esi					# read val from (src + 14)...
+  0x1b5: 406138000000 | 	rmmovl %esi, 56(%ecx)					# ...and store it to (dst + 14
+  0x1bb: 6266         | 	andl %esi, %esi						# val > 0?
+  0x1bd: 76c8010000   | 	jg Pos15						# if so, goto Pos15:
+  0x1c2: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x1c8: 50633c000000 | Pos15:	mrmovl 60(%ebx), %esi					# read val from (src + 15)...
+  0x1ce: 40613c000000 | 	rmmovl %esi, 60(%ecx)					# ...and store it to (dst + 15
+  0x1d4: 6266         | 	andl %esi, %esi						# val > 0?
+  0x1d6: 76e1010000   | 	jg Pos16						# if so, goto Pos16:
+  0x1db: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x1e1: 506340000000 | Pos16:	mrmovl 64(%ebx), %esi					# read val from (src + 16)...
+  0x1e7: 406140000000 | 	rmmovl %esi, 64(%ecx)					# ...and store it to (dst + 16
+  0x1ed: 6266         | 	andl %esi, %esi						# val > 0?
+  0x1ef: 76fa010000   | 	jg Pos17						# if so, goto Pos17:
+  0x1f4: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x1fa: 506344000000 | Pos17:	mrmovl 68(%ebx), %esi					# read val from (src + 17)...
+  0x200: 406144000000 | 	rmmovl %esi, 68(%ecx)					# ...and store it to (dst + 17
+  0x206: 6266         | 	andl %esi, %esi						# val > 0?
+  0x208: 7613020000   | 	jg Pos18						# if so, goto Pos18:
+  0x20d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x213: 506348000000 | Pos18:	mrmovl 72(%ebx), %esi					# read val from (src + 18)...
+  0x219: 406148000000 | 	rmmovl %esi, 72(%ecx)					# ...and store it to (dst + 18
+  0x21f: 6266         | 	andl %esi, %esi						# val > 0?
+  0x221: 762c020000   | 	jg Pos19						# if so, goto Pos19:
+  0x226: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x22c: 50634c000000 | Pos19:	mrmovl 76(%ebx), %esi					# read val from (src + 19)...
+  0x232: 40614c000000 | 	rmmovl %esi, 76(%ecx)					# ...and store it to (dst + 19
+  0x238: 6266         | 	andl %esi, %esi						# val > 0?
+  0x23a: 7645020000   | 	jg Pos20						# if so, goto Pos20:
+  0x23f: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x245: 506350000000 | Pos20:	mrmovl 80(%ebx), %esi					# read val from (src + 20)...
+  0x24b: 406150000000 | 	rmmovl %esi, 80(%ecx)					# ...and store it to (dst + 20
+  0x251: 6266         | 	andl %esi, %esi						# val > 0?
+  0x253: 765e020000   | 	jg Pos21						# if so, goto Pos21:
+  0x258: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x25e: 506354000000 | Pos21:	mrmovl 84(%ebx), %esi					# read val from (src + 21)...
+  0x264: 406154000000 | 	rmmovl %esi, 84(%ecx)					# ...and store it to (dst + 21
+  0x26a: 6266         | 	andl %esi, %esi						# val > 0?
+  0x26c: 7677020000   | 	jg Pos22						# if so, goto Pos22:
+  0x271: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x277: 506358000000 | Pos22:	mrmovl 88(%ebx), %esi					# read val from (src + 22)...
+  0x27d: 406158000000 | 	rmmovl %esi, 88(%ecx)					# ...and store it to (dst + 22
+  0x283: 6266         | 	andl %esi, %esi						# val > 0?
+  0x285: 7690020000   | 	jg Pos23						# if so, goto Pos23:
+  0x28a: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x290: 50635c000000 | Pos23:	mrmovl 92(%ebx), %esi					# read val from (src + 23)...
+  0x296: 40615c000000 | 	rmmovl %esi, 92(%ecx)					# ...and store it to (dst + 23
+  0x29c: 6266         | 	andl %esi, %esi						# val > 0?
+  0x29e: 76a9020000   | 	jg Pos24						# if so, goto Pos24:
+  0x2a3: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x2a9: 506360000000 | Pos24:	mrmovl 96(%ebx), %esi					# read val from (src + 24)...
+  0x2af: 406160000000 | 	rmmovl %esi, 96(%ecx)					# ...and store it to (dst + 24
+  0x2b5: 6266         | 	andl %esi, %esi						# val > 0?
+  0x2b7: 76c2020000   | 	jg Pos25						# if so, goto Pos25:
+  0x2bc: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x2c2: 506364000000 | Pos25:	mrmovl 100(%ebx), %esi					# read val from (src + 25)...
+  0x2c8: 406164000000 | 	rmmovl %esi, 100(%ecx)					# ...and store it to (dst + 25
+  0x2ce: 6266         | 	andl %esi, %esi						# val > 0?
+  0x2d0: 76db020000   | 	jg Pos26						# if so, goto Pos26:
+  0x2d5: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x2db: 506368000000 | Pos26:	mrmovl 104(%ebx), %esi					# read val from (src + 26)...
+  0x2e1: 406168000000 | 	rmmovl %esi, 104(%ecx)					# ...and store it to (dst + 26
+  0x2e7: 6266         | 	andl %esi, %esi						# val > 0?
+  0x2e9: 76f4020000   | 	jg Pos27						# if so, goto Pos27:
+  0x2ee: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x2f4: 50636c000000 | Pos27:	mrmovl 108(%ebx), %esi					# read val from (src + 27)...
+  0x2fa: 40616c000000 | 	rmmovl %esi, 108(%ecx)					# ...and store it to (dst + 27
+  0x300: 6266         | 	andl %esi, %esi						# val > 0?
+  0x302: 760d030000   | 	jg Pos28						# if so, goto Pos28:
+  0x307: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x30d: 506370000000 | Pos28:	mrmovl 112(%ebx), %esi					# read val from (src + 28)...
+  0x313: 406170000000 | 	rmmovl %esi, 112(%ecx)					# ...and store it to (dst + 28
+  0x319: 6266         | 	andl %esi, %esi						# val > 0?
+  0x31b: 7626030000   | 	jg Pos29						# if so, goto Pos29:
+  0x320: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x326: 506374000000 | Pos29:	mrmovl 116(%ebx), %esi					# read val from (src + 29)...
+  0x32c: 406174000000 | 	rmmovl %esi, 116(%ecx)					# ...and store it to (dst + 29
+  0x332: 6266         | 	andl %esi, %esi						# val > 0?
+  0x334: 763f030000   | 	jg Pos30						# if so, goto Pos30:
+  0x339: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x33f: 506378000000 | Pos30:	mrmovl 120(%ebx), %esi					# read val from (src + 30)...
+  0x345: 406178000000 | 	rmmovl %esi, 120(%ecx)					# ...and store it to (dst + 30
+  0x34b: 6266         | 	andl %esi, %esi						# val > 0?
+  0x34d: 7658030000   | 	jg Pos31						# if so, goto Pos31:
+  0x352: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x358: 50637c000000 | Pos31:	mrmovl 124(%ebx), %esi					# read val from (src + 31)...
+  0x35e: 40617c000000 | 	rmmovl %esi, 124(%ecx)					# ...and store it to (dst + 31
+  0x364: 6266         | 	andl %esi, %esi						# val > 0?
+  0x366: 7671030000   | 	jg Pos32						# if so, goto Pos32:
+  0x36b: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x371: 506380000000 | Pos32:	mrmovl 128(%ebx), %esi					# read val from (src + 32)...
+  0x377: 406180000000 | 	rmmovl %esi, 128(%ecx)					# ...and store it to (dst + 32
+  0x37d: 6266         | 	andl %esi, %esi						# val > 0?
+  0x37f: 768a030000   | 	jg Pos33						# if so, goto Pos33:
+  0x384: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x38a: 506384000000 | Pos33:	mrmovl 132(%ebx), %esi					# read val from (src + 33)...
+  0x390: 406184000000 | 	rmmovl %esi, 132(%ecx)					# ...and store it to (dst + 33
+  0x396: 6266         | 	andl %esi, %esi						# val > 0?
+  0x398: 76a3030000   | 	jg Pos34						# if so, goto Pos34:
+  0x39d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x3a3: 506388000000 | Pos34:	mrmovl 136(%ebx), %esi					# read val from (src + 34)...
+  0x3a9: 406188000000 | 	rmmovl %esi, 136(%ecx)					# ...and store it to (dst + 34
+  0x3af: 6266         | 	andl %esi, %esi						# val > 0?
+  0x3b1: 76bc030000   | 	jg Pos35						# if so, goto Pos35:
+  0x3b6: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x3bc: 50638c000000 | Pos35:	mrmovl 140(%ebx), %esi					# read val from (src + 35)...
+  0x3c2: 40618c000000 | 	rmmovl %esi, 140(%ecx)					# ...and store it to (dst + 35
+  0x3c8: 6266         | 	andl %esi, %esi						# val > 0?
+  0x3ca: 76d5030000   | 	jg Pos36						# if so, goto Pos36:
+  0x3cf: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x3d5: 506390000000 | Pos36:	mrmovl 144(%ebx), %esi					# read val from (src + 36)...
+  0x3db: 406190000000 | 	rmmovl %esi, 144(%ecx)					# ...and store it to (dst + 36
+  0x3e1: 6266         | 	andl %esi, %esi						# val > 0?
+  0x3e3: 76ee030000   | 	jg Pos37						# if so, goto Pos37:
+  0x3e8: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x3ee: 506394000000 | Pos37:	mrmovl 148(%ebx), %esi					# read val from (src + 37)...
+  0x3f4: 406194000000 | 	rmmovl %esi, 148(%ecx)					# ...and store it to (dst + 37
+  0x3fa: 6266         | 	andl %esi, %esi						# val > 0?
+  0x3fc: 7607040000   | 	jg Pos38						# if so, goto Pos38:
+  0x401: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x407: 506398000000 | Pos38:	mrmovl 152(%ebx), %esi					# read val from (src + 38)...
+  0x40d: 406198000000 | 	rmmovl %esi, 152(%ecx)					# ...and store it to (dst + 38
+  0x413: 6266         | 	andl %esi, %esi						# val > 0?
+  0x415: 7620040000   | 	jg Pos39						# if so, goto Pos39:
+  0x41a: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x420: 50639c000000 | Pos39:	mrmovl 156(%ebx), %esi					# read val from (src + 39)...
+  0x426: 40619c000000 | 	rmmovl %esi, 156(%ecx)					# ...and store it to (dst + 39
+  0x42c: 6266         | 	andl %esi, %esi						# val > 0?
+  0x42e: 7639040000   | 	jg Pos40						# if so, goto Pos40:
+  0x433: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x439: 5063a0000000 | Pos40:	mrmovl 160(%ebx), %esi					# read val from (src + 40)...
+  0x43f: 4061a0000000 | 	rmmovl %esi, 160(%ecx)					# ...and store it to (dst + 40
+  0x445: 6266         | 	andl %esi, %esi						# val > 0?
+  0x447: 7652040000   | 	jg Pos41						# if so, goto Pos41:
+  0x44c: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x452: 5063a4000000 | Pos41:	mrmovl 164(%ebx), %esi					# read val from (src + 41)...
+  0x458: 4061a4000000 | 	rmmovl %esi, 164(%ecx)					# ...and store it to (dst + 41
+  0x45e: 6266         | 	andl %esi, %esi						# val > 0?
+  0x460: 766b040000   | 	jg Pos42						# if so, goto Pos42:
+  0x465: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x46b: 5063a8000000 | Pos42:	mrmovl 168(%ebx), %esi					# read val from (src + 42)...
+  0x471: 4061a8000000 | 	rmmovl %esi, 168(%ecx)					# ...and store it to (dst + 42
+  0x477: 6266         | 	andl %esi, %esi						# val > 0?
+  0x479: 7684040000   | 	jg Pos43						# if so, goto Pos43:
+  0x47e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x484: 5063ac000000 | Pos43:	mrmovl 172(%ebx), %esi					# read val from (src + 43)...
+  0x48a: 4061ac000000 | 	rmmovl %esi, 172(%ecx)					# ...and store it to (dst + 43
+  0x490: 6266         | 	andl %esi, %esi						# val > 0?
+  0x492: 769d040000   | 	jg Pos44						# if so, goto Pos44:
+  0x497: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x49d: 5063b0000000 | Pos44:	mrmovl 176(%ebx), %esi					# read val from (src + 44)...
+  0x4a3: 4061b0000000 | 	rmmovl %esi, 176(%ecx)					# ...and store it to (dst + 44
+  0x4a9: 6266         | 	andl %esi, %esi						# val > 0?
+  0x4ab: 76b6040000   | 	jg Pos45						# if so, goto Pos45:
+  0x4b0: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x4b6: 5063b4000000 | Pos45:	mrmovl 180(%ebx), %esi					# read val from (src + 45)...
+  0x4bc: 4061b4000000 | 	rmmovl %esi, 180(%ecx)					# ...and store it to (dst + 45
+  0x4c2: 6266         | 	andl %esi, %esi						# val > 0?
+  0x4c4: 76cf040000   | 	jg Pos46						# if so, goto Pos46:
+  0x4c9: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x4cf: 5063b8000000 | Pos46:	mrmovl 184(%ebx), %esi					# read val from (src + 46)...
+  0x4d5: 4061b8000000 | 	rmmovl %esi, 184(%ecx)					# ...and store it to (dst + 46
+  0x4db: 6266         | 	andl %esi, %esi						# val > 0?
+  0x4dd: 76e8040000   | 	jg Pos47						# if so, goto Pos47:
+  0x4e2: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x4e8: 5063bc000000 | Pos47:	mrmovl 188(%ebx), %esi					# read val from (src + 47)...
+  0x4ee: 4061bc000000 | 	rmmovl %esi, 188(%ecx)					# ...and store it to (dst + 47
+  0x4f4: 6266         | 	andl %esi, %esi						# val > 0?
+  0x4f6: 7601050000   | 	jg Pos48						# if so, goto Pos48:
+  0x4fb: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x501: 5063c0000000 | Pos48:	mrmovl 192(%ebx), %esi					# read val from (src + 48)...
+  0x507: 4061c0000000 | 	rmmovl %esi, 192(%ecx)					# ...and store it to (dst + 48
+  0x50d: 6266         | 	andl %esi, %esi						# val > 0?
+  0x50f: 761a050000   | 	jg Pos49						# if so, goto Pos49:
+  0x514: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x51a: 5063c4000000 | Pos49:	mrmovl 196(%ebx), %esi					# read val from (src + 49)...
+  0x520: 4061c4000000 | 	rmmovl %esi, 196(%ecx)					# ...and store it to (dst + 49
+  0x526: 6266         | 	andl %esi, %esi						# val > 0?
+  0x528: 7633050000   | 	jg Pos50						# if so, goto Pos50:
+  0x52d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x533: 5063c8000000 | Pos50:	mrmovl 200(%ebx), %esi					# read val from (src + 50)...
+  0x539: 4061c8000000 | 	rmmovl %esi, 200(%ecx)					# ...and store it to (dst + 50
+  0x53f: 6266         | 	andl %esi, %esi						# val > 0?
+  0x541: 764c050000   | 	jg Pos51						# if so, goto Pos51:
+  0x546: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x54c: 5063cc000000 | Pos51:	mrmovl 204(%ebx), %esi					# read val from (src + 51)...
+  0x552: 4061cc000000 | 	rmmovl %esi, 204(%ecx)					# ...and store it to (dst + 51
+  0x558: 6266         | 	andl %esi, %esi						# val > 0?
+  0x55a: 7665050000   | 	jg Pos52						# if so, goto Pos52:
+  0x55f: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x565: 5063d0000000 | Pos52:	mrmovl 208(%ebx), %esi					# read val from (src + 52)...
+  0x56b: 4061d0000000 | 	rmmovl %esi, 208(%ecx)					# ...and store it to (dst + 52
+  0x571: 6266         | 	andl %esi, %esi						# val > 0?
+  0x573: 767e050000   | 	jg Pos53						# if so, goto Pos53:
+  0x578: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x57e: 5063d4000000 | Pos53:	mrmovl 212(%ebx), %esi					# read val from (src + 53)...
+  0x584: 4061d4000000 | 	rmmovl %esi, 212(%ecx)					# ...and store it to (dst + 53
+  0x58a: 6266         | 	andl %esi, %esi						# val > 0?
+  0x58c: 7697050000   | 	jg Pos54						# if so, goto Pos54:
+  0x591: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x597: 5063d8000000 | Pos54:	mrmovl 216(%ebx), %esi					# read val from (src + 54)...
+  0x59d: 4061d8000000 | 	rmmovl %esi, 216(%ecx)					# ...and store it to (dst + 54
+  0x5a3: 6266         | 	andl %esi, %esi						# val > 0?
+  0x5a5: 76b0050000   | 	jg Pos55						# if so, goto Pos55:
+  0x5aa: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x5b0: 5063dc000000 | Pos55:	mrmovl 220(%ebx), %esi					# read val from (src + 55)...
+  0x5b6: 4061dc000000 | 	rmmovl %esi, 220(%ecx)					# ...and store it to (dst + 55
+  0x5bc: 6266         | 	andl %esi, %esi						# val > 0?
+  0x5be: 76c9050000   | 	jg Pos56						# if so, goto Pos56:
+  0x5c3: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x5c9: 5063e0000000 | Pos56:	mrmovl 224(%ebx), %esi					# read val from (src + 56)...
+  0x5cf: 4061e0000000 | 	rmmovl %esi, 224(%ecx)					# ...and store it to (dst + 56
+  0x5d5: 6266         | 	andl %esi, %esi						# val > 0?
+  0x5d7: 76e2050000   | 	jg Pos57						# if so, goto Pos57:
+  0x5dc: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x5e2: 5063e4000000 | Pos57:	mrmovl 228(%ebx), %esi					# read val from (src + 57)...
+  0x5e8: 4061e4000000 | 	rmmovl %esi, 228(%ecx)					# ...and store it to (dst + 57
+  0x5ee: 6266         | 	andl %esi, %esi						# val > 0?
+  0x5f0: 76fb050000   | 	jg Pos58						# if so, goto Pos58:
+  0x5f5: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x5fb: 5063e8000000 | Pos58:	mrmovl 232(%ebx), %esi					# read val from (src + 58)...
+  0x601: 4061e8000000 | 	rmmovl %esi, 232(%ecx)					# ...and store it to (dst + 58
+  0x607: 6266         | 	andl %esi, %esi						# val > 0?
+  0x609: 7614060000   | 	jg Pos59						# if so, goto Pos59:
+  0x60e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x614: 5063ec000000 | Pos59:	mrmovl 236(%ebx), %esi					# read val from (src + 59)...
+  0x61a: 4061ec000000 | 	rmmovl %esi, 236(%ecx)					# ...and store it to (dst + 59
+  0x620: 6266         | 	andl %esi, %esi						# val > 0?
+  0x622: 762d060000   | 	jg Pos60						# if so, goto Pos60:
+  0x627: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x62d: 5063f0000000 | Pos60:	mrmovl 240(%ebx), %esi					# read val from (src + 60)...
+  0x633: 4061f0000000 | 	rmmovl %esi, 240(%ecx)					# ...and store it to (dst + 60
+  0x639: 6266         | 	andl %esi, %esi						# val > 0?
+  0x63b: 7646060000   | 	jg Pos61						# if so, goto Pos61:
+  0x640: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x646:              | Pos61:
+                      | 
+  0x646: c083f4000000 | 	iaddl $244, %ebx					# src+=61
+  0x64c: c081f4000000 | 	iaddl $244, %ecx					# dst+=61
+  0x652: c082c3ffffff | 	iaddl $-61, %edx					# len-=61
+  0x658: 7651000000   | 	jg Loop1
+                      | 
+  0x65d: 6022         | Out:	addl %edx,%edx						# len*4
+  0x65f: 6022         | 	addl %edx,%edx
+  0x661: 50223f0d0000 | 	mrmovl	JTEnd(%edx), %edx				# jump position=4*(len+59)+JTStart
+  0x667: a028         | 	pushl %edx						# goto jump position
+  0x669: 90           | 	ret
+                      | 
+                      | 
+  0x66a: 5063ec000000 | JT60:	mrmovl 236(%ebx), %esi					# read val from (src + 59)...
+  0x670: 4061ec000000 | 	rmmovl %esi, 236(%ecx)					# ...and store it to (dst + 59
+  0x676: 6266         | 	andl %esi, %esi						# val > 0?
+  0x678: 7683060000   | 	jg JT59							# if so, goto JT59:
+  0x67d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x683: 5063e8000000 | JT59:	mrmovl 232(%ebx), %esi					# read val from (src + 58)...
+  0x689: 4061e8000000 | 	rmmovl %esi, 232(%ecx)					# ...and store it to (dst + 58
+  0x68f: 6266         | 	andl %esi, %esi						# val > 0?
+  0x691: 769c060000   | 	jg JT58							# if so, goto JT58:
+  0x696: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x69c: 5063e4000000 | JT58:	mrmovl 228(%ebx), %esi					# read val from (src + 57)...
+  0x6a2: 4061e4000000 | 	rmmovl %esi, 228(%ecx)					# ...and store it to (dst + 57
+  0x6a8: 6266         | 	andl %esi, %esi						# val > 0?
+  0x6aa: 76b5060000   | 	jg JT57							# if so, goto JT57:
+  0x6af: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x6b5: 5063e0000000 | JT57:	mrmovl 224(%ebx), %esi					# read val from (src + 56)...
+  0x6bb: 4061e0000000 | 	rmmovl %esi, 224(%ecx)					# ...and store it to (dst + 56
+  0x6c1: 6266         | 	andl %esi, %esi						# val > 0?
+  0x6c3: 76ce060000   | 	jg JT56							# if so, goto JT56:
+  0x6c8: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x6ce: 5063dc000000 | JT56:	mrmovl 220(%ebx), %esi					# read val from (src + 55)...
+  0x6d4: 4061dc000000 | 	rmmovl %esi, 220(%ecx)					# ...and store it to (dst + 55
+  0x6da: 6266         | 	andl %esi, %esi						# val > 0?
+  0x6dc: 76e7060000   | 	jg JT55							# if so, goto JT55:
+  0x6e1: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x6e7: 5063d8000000 | JT55:	mrmovl 216(%ebx), %esi					# read val from (src + 54)...
+  0x6ed: 4061d8000000 | 	rmmovl %esi, 216(%ecx)					# ...and store it to (dst + 54
+  0x6f3: 6266         | 	andl %esi, %esi						# val > 0?
+  0x6f5: 7600070000   | 	jg JT54							# if so, goto JT54:
+  0x6fa: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x700: 5063d4000000 | JT54:	mrmovl 212(%ebx), %esi					# read val from (src + 53)...
+  0x706: 4061d4000000 | 	rmmovl %esi, 212(%ecx)					# ...and store it to (dst + 53
+  0x70c: 6266         | 	andl %esi, %esi						# val > 0?
+  0x70e: 7619070000   | 	jg JT53							# if so, goto JT53:
+  0x713: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x719: 5063d0000000 | JT53:	mrmovl 208(%ebx), %esi					# read val from (src + 52)...
+  0x71f: 4061d0000000 | 	rmmovl %esi, 208(%ecx)					# ...and store it to (dst + 52
+  0x725: 6266         | 	andl %esi, %esi						# val > 0?
+  0x727: 7632070000   | 	jg JT52							# if so, goto JT52:
+  0x72c: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x732: 5063cc000000 | JT52:	mrmovl 204(%ebx), %esi					# read val from (src + 51)...
+  0x738: 4061cc000000 | 	rmmovl %esi, 204(%ecx)					# ...and store it to (dst + 51
+  0x73e: 6266         | 	andl %esi, %esi						# val > 0?
+  0x740: 764b070000   | 	jg JT51							# if so, goto JT51:
+  0x745: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x74b: 5063c8000000 | JT51:	mrmovl 200(%ebx), %esi					# read val from (src + 50)...
+  0x751: 4061c8000000 | 	rmmovl %esi, 200(%ecx)					# ...and store it to (dst + 50
+  0x757: 6266         | 	andl %esi, %esi						# val > 0?
+  0x759: 7664070000   | 	jg JT50							# if so, goto JT50:
+  0x75e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x764: 5063c4000000 | JT50:	mrmovl 196(%ebx), %esi					# read val from (src + 49)...
+  0x76a: 4061c4000000 | 	rmmovl %esi, 196(%ecx)					# ...and store it to (dst + 49
+  0x770: 6266         | 	andl %esi, %esi						# val > 0?
+  0x772: 767d070000   | 	jg JT49							# if so, goto JT49:
+  0x777: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x77d: 5063c0000000 | JT49:	mrmovl 192(%ebx), %esi					# read val from (src + 48)...
+  0x783: 4061c0000000 | 	rmmovl %esi, 192(%ecx)					# ...and store it to (dst + 48
+  0x789: 6266         | 	andl %esi, %esi						# val > 0?
+  0x78b: 7696070000   | 	jg JT48							# if so, goto JT48:
+  0x790: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x796: 5063bc000000 | JT48:	mrmovl 188(%ebx), %esi					# read val from (src + 47)...
+  0x79c: 4061bc000000 | 	rmmovl %esi, 188(%ecx)					# ...and store it to (dst + 47
+  0x7a2: 6266         | 	andl %esi, %esi						# val > 0?
+  0x7a4: 76af070000   | 	jg JT47							# if so, goto JT47:
+  0x7a9: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x7af: 5063b8000000 | JT47:	mrmovl 184(%ebx), %esi					# read val from (src + 46)...
+  0x7b5: 4061b8000000 | 	rmmovl %esi, 184(%ecx)					# ...and store it to (dst + 46
+  0x7bb: 6266         | 	andl %esi, %esi						# val > 0?
+  0x7bd: 76c8070000   | 	jg JT46							# if so, goto JT46:
+  0x7c2: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x7c8: 5063b4000000 | JT46:	mrmovl 180(%ebx), %esi					# read val from (src + 45)...
+  0x7ce: 4061b4000000 | 	rmmovl %esi, 180(%ecx)					# ...and store it to (dst + 45
+  0x7d4: 6266         | 	andl %esi, %esi						# val > 0?
+  0x7d6: 76e1070000   | 	jg JT45							# if so, goto JT45:
+  0x7db: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x7e1: 5063b0000000 | JT45:	mrmovl 176(%ebx), %esi					# read val from (src + 44)...
+  0x7e7: 4061b0000000 | 	rmmovl %esi, 176(%ecx)					# ...and store it to (dst + 44
+  0x7ed: 6266         | 	andl %esi, %esi						# val > 0?
+  0x7ef: 76fa070000   | 	jg JT44							# if so, goto JT44:
+  0x7f4: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x7fa: 5063ac000000 | JT44:	mrmovl 172(%ebx), %esi					# read val from (src + 43)...
+  0x800: 4061ac000000 | 	rmmovl %esi, 172(%ecx)					# ...and store it to (dst + 43
+  0x806: 6266         | 	andl %esi, %esi						# val > 0?
+  0x808: 7613080000   | 	jg JT43							# if so, goto JT43:
+  0x80d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x813: 5063a8000000 | JT43:	mrmovl 168(%ebx), %esi					# read val from (src + 42)...
+  0x819: 4061a8000000 | 	rmmovl %esi, 168(%ecx)					# ...and store it to (dst + 42
+  0x81f: 6266         | 	andl %esi, %esi						# val > 0?
+  0x821: 762c080000   | 	jg JT42							# if so, goto JT42:
+  0x826: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x82c: 5063a4000000 | JT42:	mrmovl 164(%ebx), %esi					# read val from (src + 41)...
+  0x832: 4061a4000000 | 	rmmovl %esi, 164(%ecx)					# ...and store it to (dst + 41
+  0x838: 6266         | 	andl %esi, %esi						# val > 0?
+  0x83a: 7645080000   | 	jg JT41							# if so, goto JT41:
+  0x83f: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x845: 5063a0000000 | JT41:	mrmovl 160(%ebx), %esi					# read val from (src + 40)...
+  0x84b: 4061a0000000 | 	rmmovl %esi, 160(%ecx)					# ...and store it to (dst + 40
+  0x851: 6266         | 	andl %esi, %esi						# val > 0?
+  0x853: 765e080000   | 	jg JT40							# if so, goto JT40:
+  0x858: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x85e: 50639c000000 | JT40:	mrmovl 156(%ebx), %esi					# read val from (src + 39)...
+  0x864: 40619c000000 | 	rmmovl %esi, 156(%ecx)					# ...and store it to (dst + 39
+  0x86a: 6266         | 	andl %esi, %esi						# val > 0?
+  0x86c: 7677080000   | 	jg JT39							# if so, goto JT39:
+  0x871: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x877: 506398000000 | JT39:	mrmovl 152(%ebx), %esi					# read val from (src + 38)...
+  0x87d: 406198000000 | 	rmmovl %esi, 152(%ecx)					# ...and store it to (dst + 38
+  0x883: 6266         | 	andl %esi, %esi						# val > 0?
+  0x885: 7690080000   | 	jg JT38							# if so, goto JT38:
+  0x88a: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x890: 506394000000 | JT38:	mrmovl 148(%ebx), %esi					# read val from (src + 37)...
+  0x896: 406194000000 | 	rmmovl %esi, 148(%ecx)					# ...and store it to (dst + 37
+  0x89c: 6266         | 	andl %esi, %esi						# val > 0?
+  0x89e: 76a9080000   | 	jg JT37							# if so, goto JT37:
+  0x8a3: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x8a9: 506390000000 | JT37:	mrmovl 144(%ebx), %esi					# read val from (src + 36)...
+  0x8af: 406190000000 | 	rmmovl %esi, 144(%ecx)					# ...and store it to (dst + 36
+  0x8b5: 6266         | 	andl %esi, %esi						# val > 0?
+  0x8b7: 76c2080000   | 	jg JT36							# if so, goto JT36:
+  0x8bc: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x8c2: 50638c000000 | JT36:	mrmovl 140(%ebx), %esi					# read val from (src + 35)...
+  0x8c8: 40618c000000 | 	rmmovl %esi, 140(%ecx)					# ...and store it to (dst + 35
+  0x8ce: 6266         | 	andl %esi, %esi						# val > 0?
+  0x8d0: 76db080000   | 	jg JT35							# if so, goto JT35:
+  0x8d5: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x8db: 506388000000 | JT35:	mrmovl 136(%ebx), %esi					# read val from (src + 34)...
+  0x8e1: 406188000000 | 	rmmovl %esi, 136(%ecx)					# ...and store it to (dst + 34
+  0x8e7: 6266         | 	andl %esi, %esi						# val > 0?
+  0x8e9: 76f4080000   | 	jg JT34							# if so, goto JT34:
+  0x8ee: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x8f4: 506384000000 | JT34:	mrmovl 132(%ebx), %esi					# read val from (src + 33)...
+  0x8fa: 406184000000 | 	rmmovl %esi, 132(%ecx)					# ...and store it to (dst + 33
+  0x900: 6266         | 	andl %esi, %esi						# val > 0?
+  0x902: 760d090000   | 	jg JT33							# if so, goto JT33:
+  0x907: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x90d: 506380000000 | JT33:	mrmovl 128(%ebx), %esi					# read val from (src + 32)...
+  0x913: 406180000000 | 	rmmovl %esi, 128(%ecx)					# ...and store it to (dst + 32
+  0x919: 6266         | 	andl %esi, %esi						# val > 0?
+  0x91b: 7626090000   | 	jg JT32							# if so, goto JT32:
+  0x920: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x926: 50637c000000 | JT32:	mrmovl 124(%ebx), %esi					# read val from (src + 31)...
+  0x92c: 40617c000000 | 	rmmovl %esi, 124(%ecx)					# ...and store it to (dst + 31
+  0x932: 6266         | 	andl %esi, %esi						# val > 0?
+  0x934: 763f090000   | 	jg JT31							# if so, goto JT31:
+  0x939: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x93f: 506378000000 | JT31:	mrmovl 120(%ebx), %esi					# read val from (src + 30)...
+  0x945: 406178000000 | 	rmmovl %esi, 120(%ecx)					# ...and store it to (dst + 30
+  0x94b: 6266         | 	andl %esi, %esi						# val > 0?
+  0x94d: 7658090000   | 	jg JT30							# if so, goto JT30:
+  0x952: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x958: 506374000000 | JT30:	mrmovl 116(%ebx), %esi					# read val from (src + 29)...
+  0x95e: 406174000000 | 	rmmovl %esi, 116(%ecx)					# ...and store it to (dst + 29
+  0x964: 6266         | 	andl %esi, %esi						# val > 0?
+  0x966: 7671090000   | 	jg JT29							# if so, goto JT29:
+  0x96b: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x971: 506370000000 | JT29:	mrmovl 112(%ebx), %esi					# read val from (src + 28)...
+  0x977: 406170000000 | 	rmmovl %esi, 112(%ecx)					# ...and store it to (dst + 28
+  0x97d: 6266         | 	andl %esi, %esi						# val > 0?
+  0x97f: 768a090000   | 	jg JT28							# if so, goto JT28:
+  0x984: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x98a: 50636c000000 | JT28:	mrmovl 108(%ebx), %esi					# read val from (src + 27)...
+  0x990: 40616c000000 | 	rmmovl %esi, 108(%ecx)					# ...and store it to (dst + 27
+  0x996: 6266         | 	andl %esi, %esi						# val > 0?
+  0x998: 76a3090000   | 	jg JT27							# if so, goto JT27:
+  0x99d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x9a3: 506368000000 | JT27:	mrmovl 104(%ebx), %esi					# read val from (src + 26)...
+  0x9a9: 406168000000 | 	rmmovl %esi, 104(%ecx)					# ...and store it to (dst + 26
+  0x9af: 6266         | 	andl %esi, %esi						# val > 0?
+  0x9b1: 76bc090000   | 	jg JT26							# if so, goto JT26:
+  0x9b6: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x9bc: 506364000000 | JT26:	mrmovl 100(%ebx), %esi					# read val from (src + 25)...
+  0x9c2: 406164000000 | 	rmmovl %esi, 100(%ecx)					# ...and store it to (dst + 25
+  0x9c8: 6266         | 	andl %esi, %esi						# val > 0?
+  0x9ca: 76d5090000   | 	jg JT25							# if so, goto JT25:
+  0x9cf: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x9d5: 506360000000 | JT25:	mrmovl 96(%ebx), %esi					# read val from (src + 24)...
+  0x9db: 406160000000 | 	rmmovl %esi, 96(%ecx)					# ...and store it to (dst + 24
+  0x9e1: 6266         | 	andl %esi, %esi						# val > 0?
+  0x9e3: 76ee090000   | 	jg JT24							# if so, goto JT24:
+  0x9e8: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0x9ee: 50635c000000 | JT24:	mrmovl 92(%ebx), %esi					# read val from (src + 23)...
+  0x9f4: 40615c000000 | 	rmmovl %esi, 92(%ecx)					# ...and store it to (dst + 23
+  0x9fa: 6266         | 	andl %esi, %esi						# val > 0?
+  0x9fc: 76070a0000   | 	jg JT23							# if so, goto JT23:
+  0xa01: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa07: 506358000000 | JT23:	mrmovl 88(%ebx), %esi					# read val from (src + 22)...
+  0xa0d: 406158000000 | 	rmmovl %esi, 88(%ecx)					# ...and store it to (dst + 22
+  0xa13: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa15: 76200a0000   | 	jg JT22							# if so, goto JT22:
+  0xa1a: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa20: 506354000000 | JT22:	mrmovl 84(%ebx), %esi					# read val from (src + 21)...
+  0xa26: 406154000000 | 	rmmovl %esi, 84(%ecx)					# ...and store it to (dst + 21
+  0xa2c: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa2e: 76390a0000   | 	jg JT21							# if so, goto JT21:
+  0xa33: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa39: 506350000000 | JT21:	mrmovl 80(%ebx), %esi					# read val from (src + 20)...
+  0xa3f: 406150000000 | 	rmmovl %esi, 80(%ecx)					# ...and store it to (dst + 20
+  0xa45: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa47: 76520a0000   | 	jg JT20							# if so, goto JT20:
+  0xa4c: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa52: 50634c000000 | JT20:	mrmovl 76(%ebx), %esi					# read val from (src + 19)...
+  0xa58: 40614c000000 | 	rmmovl %esi, 76(%ecx)					# ...and store it to (dst + 19
+  0xa5e: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa60: 766b0a0000   | 	jg JT19							# if so, goto JT19:
+  0xa65: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa6b: 506348000000 | JT19:	mrmovl 72(%ebx), %esi					# read val from (src + 18)...
+  0xa71: 406148000000 | 	rmmovl %esi, 72(%ecx)					# ...and store it to (dst + 18
+  0xa77: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa79: 76840a0000   | 	jg JT18							# if so, goto JT18:
+  0xa7e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa84: 506344000000 | JT18:	mrmovl 68(%ebx), %esi					# read val from (src + 17)...
+  0xa8a: 406144000000 | 	rmmovl %esi, 68(%ecx)					# ...and store it to (dst + 17
+  0xa90: 6266         | 	andl %esi, %esi						# val > 0?
+  0xa92: 769d0a0000   | 	jg JT17							# if so, goto JT17:
+  0xa97: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xa9d: 506340000000 | JT17:	mrmovl 64(%ebx), %esi					# read val from (src + 16)...
+  0xaa3: 406140000000 | 	rmmovl %esi, 64(%ecx)					# ...and store it to (dst + 16
+  0xaa9: 6266         | 	andl %esi, %esi						# val > 0?
+  0xaab: 76b60a0000   | 	jg JT16							# if so, goto JT16:
+  0xab0: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xab6: 50633c000000 | JT16:	mrmovl 60(%ebx), %esi					# read val from (src + 15)...
+  0xabc: 40613c000000 | 	rmmovl %esi, 60(%ecx)					# ...and store it to (dst + 15
+  0xac2: 6266         | 	andl %esi, %esi						# val > 0?
+  0xac4: 76cf0a0000   | 	jg JT15							# if so, goto JT15:
+  0xac9: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xacf: 506338000000 | JT15:	mrmovl 56(%ebx), %esi					# read val from (src + 14)...
+  0xad5: 406138000000 | 	rmmovl %esi, 56(%ecx)					# ...and store it to (dst + 14
+  0xadb: 6266         | 	andl %esi, %esi						# val > 0?
+  0xadd: 76e80a0000   | 	jg JT14							# if so, goto JT14:
+  0xae2: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xae8: 506334000000 | JT14:	mrmovl 52(%ebx), %esi					# read val from (src + 13)...
+  0xaee: 406134000000 | 	rmmovl %esi, 52(%ecx)					# ...and store it to (dst + 13
+  0xaf4: 6266         | 	andl %esi, %esi						# val > 0?
+  0xaf6: 76010b0000   | 	jg JT13							# if so, goto JT13:
+  0xafb: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb01: 506330000000 | JT13:	mrmovl 48(%ebx), %esi					# read val from (src + 12)...
+  0xb07: 406130000000 | 	rmmovl %esi, 48(%ecx)					# ...and store it to (dst + 12
+  0xb0d: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb0f: 761a0b0000   | 	jg JT12							# if so, goto JT12:
+  0xb14: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb1a: 50632c000000 | JT12:	mrmovl 44(%ebx), %esi					# read val from (src + 11)...
+  0xb20: 40612c000000 | 	rmmovl %esi, 44(%ecx)					# ...and store it to (dst + 11
+  0xb26: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb28: 76330b0000   | 	jg JT11							# if so, goto JT11:
+  0xb2d: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb33: 506328000000 | JT11:	mrmovl 40(%ebx), %esi					# read val from (src + 10)...
+  0xb39: 406128000000 | 	rmmovl %esi, 40(%ecx)					# ...and store it to (dst + 10
+  0xb3f: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb41: 764c0b0000   | 	jg JT10							# if so, goto JT10:
+  0xb46: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb4c: 506324000000 | JT10:	mrmovl 36(%ebx), %esi					# read val from (src + 9)...
+  0xb52: 406124000000 | 	rmmovl %esi, 36(%ecx)					# ...and store it to (dst + 9
+  0xb58: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb5a: 76650b0000   | 	jg JT9							# if so, goto JT9:
+  0xb5f: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb65: 506320000000 | JT9:	mrmovl 32(%ebx), %esi					# read val from (src + 8)...
+  0xb6b: 406120000000 | 	rmmovl %esi, 32(%ecx)					# ...and store it to (dst + 8
+  0xb71: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb73: 767e0b0000   | 	jg JT8							# if so, goto JT8:
+  0xb78: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb7e: 50631c000000 | JT8:	mrmovl 28(%ebx), %esi					# read val from (src + 7)...
+  0xb84: 40611c000000 | 	rmmovl %esi, 28(%ecx)					# ...and store it to (dst + 7
+  0xb8a: 6266         | 	andl %esi, %esi						# val > 0?
+  0xb8c: 76970b0000   | 	jg JT7							# if so, goto JT7:
+  0xb91: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xb97: 506318000000 | JT7:	mrmovl 24(%ebx), %esi					# read val from (src + 6)...
+  0xb9d: 406118000000 | 	rmmovl %esi, 24(%ecx)					# ...and store it to (dst + 6
+  0xba3: 6266         | 	andl %esi, %esi						# val > 0?
+  0xba5: 76b00b0000   | 	jg JT6							# if so, goto JT6:
+  0xbaa: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xbb0: 506314000000 | JT6:	mrmovl 20(%ebx), %esi					# read val from (src + 5)...
+  0xbb6: 406114000000 | 	rmmovl %esi, 20(%ecx)					# ...and store it to (dst + 5
+  0xbbc: 6266         | 	andl %esi, %esi						# val > 0?
+  0xbbe: 76c90b0000   | 	jg JT5							# if so, goto JT5:
+  0xbc3: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xbc9: 506310000000 | JT5:	mrmovl 16(%ebx), %esi					# read val from (src + 4)...
+  0xbcf: 406110000000 | 	rmmovl %esi, 16(%ecx)					# ...and store it to (dst + 4
+  0xbd5: 6266         | 	andl %esi, %esi						# val > 0?
+  0xbd7: 76e20b0000   | 	jg JT4							# if so, goto JT4:
+  0xbdc: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xbe2: 50630c000000 | JT4:	mrmovl 12(%ebx), %esi					# read val from (src + 3)...
+  0xbe8: 40610c000000 | 	rmmovl %esi, 12(%ecx)					# ...and store it to (dst + 3
+  0xbee: 6266         | 	andl %esi, %esi						# val > 0?
+  0xbf0: 76fb0b0000   | 	jg JT3							# if so, goto JT3:
+  0xbf5: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xbfb: 506308000000 | JT3:	mrmovl 8(%ebx), %esi					# read val from (src + 2)...
+  0xc01: 406108000000 | 	rmmovl %esi, 8(%ecx)					# ...and store it to (dst + 2
+  0xc07: 6266         | 	andl %esi, %esi						# val > 0?
+  0xc09: 76140c0000   | 	jg JT2							# if so, goto JT2:
+  0xc0e: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xc14: 506304000000 | JT2:	mrmovl 4(%ebx), %esi					# read val from (src + 1)...
+  0xc1a: 406104000000 | 	rmmovl %esi, 4(%ecx)					# ...and store it to (dst + 1
+  0xc20: 6266         | 	andl %esi, %esi						# val > 0?
+  0xc22: 762d0c0000   | 	jg JT1							# if so, goto JT1:
+  0xc27: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xc2d: 506300000000 | JT1:	mrmovl 0(%ebx), %esi					# read val from (src + 0)...
+  0xc33: 406100000000 | 	rmmovl %esi, 0(%ecx)					# ...and store it to (dst + 0
+  0xc39: 6266         | 	andl %esi, %esi						# val > 0?
+  0xc3b: 76460c0000   | 	jg JT0							# if so, goto JT0:
+  0xc40: c080ffffffff | 	iaddl $-1, %eax						# execute when val<=0, count--
+                      | 
+  0xc46:              | JT0:
                       | 	# Function epilogue. Do not modify.
-  0x081: 2060         | Done:	rrmovl %esi, %eax
-  0x083: b038         | 	popl %ebx
-  0x085: b068         | 	popl %esi
-  0x087: 2054         | 	rrmovl %ebp, %esp
-  0x089: b058         | 	popl %ebp
-  0x08b: 90           | 	ret
-                      | #/* $end ncopy-ys */
+  0xc46: b038         | 	popl %ebx
+  0xc48: b068         | 	popl %esi
+  0xc4a: 2054         | 	rrmovl %ebp, %esp
+  0xc4c: b058         | 	popl %ebp
+  0xc4e: 90           | 	ret
+                      | 
+                      | 
+                      | # Jump Table
+                      | 	#.align 4
+  0xc4f:              | JTStart:
+  0xc4f: 460c0000     | 	.long	JT0
+  0xc53: 2d0c0000     | 	.long	JT1
+  0xc57: 140c0000     | 	.long	JT2
+  0xc5b: fb0b0000     | 	.long	JT3
+  0xc5f: e20b0000     | 	.long	JT4
+  0xc63: c90b0000     | 	.long	JT5
+  0xc67: b00b0000     | 	.long	JT6
+  0xc6b: 970b0000     | 	.long	JT7
+  0xc6f: 7e0b0000     | 	.long	JT8
+  0xc73: 650b0000     | 	.long	JT9
+  0xc77: 4c0b0000     | 	.long	JT10
+  0xc7b: 330b0000     | 	.long	JT11
+  0xc7f: 1a0b0000     | 	.long	JT12
+  0xc83: 010b0000     | 	.long	JT13
+  0xc87: e80a0000     | 	.long	JT14
+  0xc8b: cf0a0000     | 	.long	JT15
+  0xc8f: b60a0000     | 	.long	JT16
+  0xc93: 9d0a0000     | 	.long	JT17
+  0xc97: 840a0000     | 	.long	JT18
+  0xc9b: 6b0a0000     | 	.long	JT19
+  0xc9f: 520a0000     | 	.long	JT20
+  0xca3: 390a0000     | 	.long	JT21
+  0xca7: 200a0000     | 	.long	JT22
+  0xcab: 070a0000     | 	.long	JT23
+  0xcaf: ee090000     | 	.long	JT24
+  0xcb3: d5090000     | 	.long	JT25
+  0xcb7: bc090000     | 	.long	JT26
+  0xcbb: a3090000     | 	.long	JT27
+  0xcbf: 8a090000     | 	.long	JT28
+  0xcc3: 71090000     | 	.long	JT29
+  0xcc7: 58090000     | 	.long	JT30
+  0xccb: 3f090000     | 	.long	JT31
+  0xccf: 26090000     | 	.long	JT32
+  0xcd3: 0d090000     | 	.long	JT33
+  0xcd7: f4080000     | 	.long	JT34
+  0xcdb: db080000     | 	.long	JT35
+  0xcdf: c2080000     | 	.long	JT36
+  0xce3: a9080000     | 	.long	JT37
+  0xce7: 90080000     | 	.long	JT38
+  0xceb: 77080000     | 	.long	JT39
+  0xcef: 5e080000     | 	.long	JT40
+  0xcf3: 45080000     | 	.long	JT41
+  0xcf7: 2c080000     | 	.long	JT42
+  0xcfb: 13080000     | 	.long	JT43
+  0xcff: fa070000     | 	.long	JT44
+  0xd03: e1070000     | 	.long	JT45
+  0xd07: c8070000     | 	.long	JT46
+  0xd0b: af070000     | 	.long	JT47
+  0xd0f: 96070000     | 	.long	JT48
+  0xd13: 7d070000     | 	.long	JT49
+  0xd17: 64070000     | 	.long	JT50
+  0xd1b: 4b070000     | 	.long	JT51
+  0xd1f: 32070000     | 	.long	JT52
+  0xd23: 19070000     | 	.long	JT53
+  0xd27: 00070000     | 	.long	JT54
+  0xd2b: e7060000     | 	.long	JT55
+  0xd2f: ce060000     | 	.long	JT56
+  0xd33: b5060000     | 	.long	JT57
+  0xd37: 9c060000     | 	.long	JT58
+  0xd3b: 83060000     | 	.long	JT59
+  0xd3f: 6a060000     | JTEnd:	.long	JT60
                       | #################################################################### 
                       | # Epilogue code for the correctness testing driver
                       | ####################################################################
@@ -68,149 +861,149 @@
                       | ###############################
                       | # Source and destination blocks 
                       | ###############################
-  0x08c:              | 	.align 4
-  0x08c: 00000000     | src:	.long 0
-  0x090: 01000000     | 	.long 1
-  0x094: 02000000     | 	.long 2
-  0x098: 03000000     | 	.long 3
-  0x09c: 04000000     | 	.long 4
-  0x0a0: 05000000     | 	.long 5
-  0x0a4: 06000000     | 	.long 6
-  0x0a8: 07000000     | 	.long 7
-  0x0ac: 08000000     | 	.long 8
-  0x0b0: 09000000     | 	.long 9
-  0x0b4: 0a000000     | 	.long 10
-  0x0b8: 0b000000     | 	.long 11
-  0x0bc: 0c000000     | 	.long 12
-  0x0c0: 0d000000     | 	.long 13
-  0x0c4: 0e000000     | 	.long 14
-  0x0c8: 0f000000     | 	.long 15
-  0x0cc: 10000000     | 	.long 16
-  0x0d0: 11000000     | 	.long 17
-  0x0d4: 12000000     | 	.long 18
-  0x0d8: 13000000     | 	.long 19
-  0x0dc: 14000000     | 	.long 20
-  0x0e0: 15000000     | 	.long 21
-  0x0e4: 16000000     | 	.long 22
-  0x0e8: 17000000     | 	.long 23
-  0x0ec: 18000000     | 	.long 24
-  0x0f0: 19000000     | 	.long 25
-  0x0f4: 1a000000     | 	.long 26
-  0x0f8: 1b000000     | 	.long 27
-  0x0fc: 1c000000     | 	.long 28
-  0x100: 1d000000     | 	.long 29
-  0x104: 1e000000     | 	.long 30
-  0x108: 1f000000     | 	.long 31
-  0x10c: 20000000     | 	.long 32
-  0x110: 21000000     | 	.long 33
-  0x114: 22000000     | 	.long 34
-  0x118: 23000000     | 	.long 35
-  0x11c: 24000000     | 	.long 36
-  0x120: 25000000     | 	.long 37
-  0x124: 26000000     | 	.long 38
-  0x128: 27000000     | 	.long 39
-  0x12c: 28000000     | 	.long 40
-  0x130: 29000000     | 	.long 41
-  0x134: 2a000000     | 	.long 42
-  0x138: 2b000000     | 	.long 43
-  0x13c: 2c000000     | 	.long 44
-  0x140: 2d000000     | 	.long 45
-  0x144: 2e000000     | 	.long 46
-  0x148: 2f000000     | 	.long 47
-  0x14c: 30000000     | 	.long 48
-  0x150: 31000000     | 	.long 49
-  0x154: 32000000     | 	.long 50
-  0x158: 33000000     | 	.long 51
-  0x15c: 34000000     | 	.long 52
-  0x160: 35000000     | 	.long 53
-  0x164: 36000000     | 	.long 54
-  0x168: 37000000     | 	.long 55
-  0x16c: 38000000     | 	.long 56
-  0x170: 39000000     | 	.long 57
-  0x174: 3a000000     | 	.long 58
-  0x178: 3b000000     | 	.long 59
-  0x17c: 3c000000     | 	.long 60
-  0x180: 3d000000     | 	.long 61
-  0x184: 3e000000     | 	.long 62
-  0x188: 3f000000     | 	.long 63
-  0x18c: 0f0f0f0f     |         .long 0x0f0f0f0f # This shouldn't get moved
+  0xd44:              | 	.align 4
+  0xd44: 00000000     | src:	.long 0
+  0xd48: 01000000     | 	.long 1
+  0xd4c: 02000000     | 	.long 2
+  0xd50: 03000000     | 	.long 3
+  0xd54: 04000000     | 	.long 4
+  0xd58: 05000000     | 	.long 5
+  0xd5c: 06000000     | 	.long 6
+  0xd60: 07000000     | 	.long 7
+  0xd64: 08000000     | 	.long 8
+  0xd68: 09000000     | 	.long 9
+  0xd6c: 0a000000     | 	.long 10
+  0xd70: 0b000000     | 	.long 11
+  0xd74: 0c000000     | 	.long 12
+  0xd78: 0d000000     | 	.long 13
+  0xd7c: 0e000000     | 	.long 14
+  0xd80: 0f000000     | 	.long 15
+  0xd84: 10000000     | 	.long 16
+  0xd88: 11000000     | 	.long 17
+  0xd8c: 12000000     | 	.long 18
+  0xd90: 13000000     | 	.long 19
+  0xd94: 14000000     | 	.long 20
+  0xd98: 15000000     | 	.long 21
+  0xd9c: 16000000     | 	.long 22
+  0xda0: 17000000     | 	.long 23
+  0xda4: 18000000     | 	.long 24
+  0xda8: 19000000     | 	.long 25
+  0xdac: 1a000000     | 	.long 26
+  0xdb0: 1b000000     | 	.long 27
+  0xdb4: 1c000000     | 	.long 28
+  0xdb8: 1d000000     | 	.long 29
+  0xdbc: 1e000000     | 	.long 30
+  0xdc0: 1f000000     | 	.long 31
+  0xdc4: 20000000     | 	.long 32
+  0xdc8: 21000000     | 	.long 33
+  0xdcc: 22000000     | 	.long 34
+  0xdd0: 23000000     | 	.long 35
+  0xdd4: 24000000     | 	.long 36
+  0xdd8: 25000000     | 	.long 37
+  0xddc: 26000000     | 	.long 38
+  0xde0: 27000000     | 	.long 39
+  0xde4: 28000000     | 	.long 40
+  0xde8: 29000000     | 	.long 41
+  0xdec: 2a000000     | 	.long 42
+  0xdf0: 2b000000     | 	.long 43
+  0xdf4: 2c000000     | 	.long 44
+  0xdf8: 2d000000     | 	.long 45
+  0xdfc: 2e000000     | 	.long 46
+  0xe00: 2f000000     | 	.long 47
+  0xe04: 30000000     | 	.long 48
+  0xe08: 31000000     | 	.long 49
+  0xe0c: 32000000     | 	.long 50
+  0xe10: 33000000     | 	.long 51
+  0xe14: 34000000     | 	.long 52
+  0xe18: 35000000     | 	.long 53
+  0xe1c: 36000000     | 	.long 54
+  0xe20: 37000000     | 	.long 55
+  0xe24: 38000000     | 	.long 56
+  0xe28: 39000000     | 	.long 57
+  0xe2c: 3a000000     | 	.long 58
+  0xe30: 3b000000     | 	.long 59
+  0xe34: 3c000000     | 	.long 60
+  0xe38: 3d000000     | 	.long 61
+  0xe3c: 3e000000     | 	.long 62
+  0xe40: 3f000000     | 	.long 63
+  0xe44: 0f0f0f0f     |         .long 0x0f0f0f0f # This shouldn't get moved
                       | 
-  0x190:              | 	.align 16
-  0x190: efbe0000     | dest:	.long 0xbeef
-  0x194: efbe0000     | 	.long 0xbeef
-  0x198: efbe0000     | 	.long 0xbeef
-  0x19c: efbe0000     | 	.long 0xbeef
-  0x1a0: efbe0000     | 	.long 0xbeef
-  0x1a4: efbe0000     | 	.long 0xbeef
-  0x1a8: efbe0000     | 	.long 0xbeef
-  0x1ac: efbe0000     | 	.long 0xbeef
-  0x1b0: efbe0000     | 	.long 0xbeef
-  0x1b4: efbe0000     | 	.long 0xbeef
-  0x1b8: efbe0000     | 	.long 0xbeef
-  0x1bc: efbe0000     | 	.long 0xbeef
-  0x1c0: efbe0000     | 	.long 0xbeef
-  0x1c4: efbe0000     | 	.long 0xbeef
-  0x1c8: efbe0000     | 	.long 0xbeef
-  0x1cc: efbe0000     | 	.long 0xbeef
-  0x1d0: efbe0000     | 	.long 0xbeef
-  0x1d4: efbe0000     | 	.long 0xbeef
-  0x1d8: efbe0000     | 	.long 0xbeef
-  0x1dc: efbe0000     | 	.long 0xbeef
-  0x1e0: efbe0000     | 	.long 0xbeef
-  0x1e4: efbe0000     | 	.long 0xbeef
-  0x1e8: efbe0000     | 	.long 0xbeef
-  0x1ec: efbe0000     | 	.long 0xbeef
-  0x1f0: efbe0000     | 	.long 0xbeef
-  0x1f4: efbe0000     | 	.long 0xbeef
-  0x1f8: efbe0000     | 	.long 0xbeef
-  0x1fc: efbe0000     | 	.long 0xbeef
-  0x200: efbe0000     | 	.long 0xbeef
-  0x204: efbe0000     | 	.long 0xbeef
-  0x208: efbe0000     | 	.long 0xbeef
-  0x20c: efbe0000     | 	.long 0xbeef
-  0x210: efbe0000     | 	.long 0xbeef
-  0x214: efbe0000     | 	.long 0xbeef
-  0x218: efbe0000     | 	.long 0xbeef
-  0x21c: efbe0000     | 	.long 0xbeef
-  0x220: efbe0000     | 	.long 0xbeef
-  0x224: efbe0000     | 	.long 0xbeef
-  0x228: efbe0000     | 	.long 0xbeef
-  0x22c: efbe0000     | 	.long 0xbeef
-  0x230: efbe0000     | 	.long 0xbeef
-  0x234: efbe0000     | 	.long 0xbeef
-  0x238: efbe0000     | 	.long 0xbeef
-  0x23c: efbe0000     | 	.long 0xbeef
-  0x240: efbe0000     | 	.long 0xbeef
-  0x244: efbe0000     | 	.long 0xbeef
-  0x248: efbe0000     | 	.long 0xbeef
-  0x24c: efbe0000     | 	.long 0xbeef
-  0x250: efbe0000     | 	.long 0xbeef
-  0x254: efbe0000     | 	.long 0xbeef
-  0x258: efbe0000     | 	.long 0xbeef
-  0x25c: efbe0000     | 	.long 0xbeef
-  0x260: efbe0000     | 	.long 0xbeef
-  0x264: efbe0000     | 	.long 0xbeef
-  0x268: efbe0000     | 	.long 0xbeef
-  0x26c: efbe0000     | 	.long 0xbeef
-  0x270: efbe0000     | 	.long 0xbeef
-  0x274: efbe0000     | 	.long 0xbeef
-  0x278: efbe0000     | 	.long 0xbeef
-  0x27c: efbe0000     | 	.long 0xbeef
-  0x280: efbe0000     | 	.long 0xbeef
-  0x284: efbe0000     | 	.long 0xbeef
-  0x288: efbe0000     | 	.long 0xbeef
-  0x28c: efbeadde     | 	.long 0xdeadbeef
+  0xe50:              | 	.align 16
+  0xe50: efbe0000     | dest:	.long 0xbeef
+  0xe54: efbe0000     | 	.long 0xbeef
+  0xe58: efbe0000     | 	.long 0xbeef
+  0xe5c: efbe0000     | 	.long 0xbeef
+  0xe60: efbe0000     | 	.long 0xbeef
+  0xe64: efbe0000     | 	.long 0xbeef
+  0xe68: efbe0000     | 	.long 0xbeef
+  0xe6c: efbe0000     | 	.long 0xbeef
+  0xe70: efbe0000     | 	.long 0xbeef
+  0xe74: efbe0000     | 	.long 0xbeef
+  0xe78: efbe0000     | 	.long 0xbeef
+  0xe7c: efbe0000     | 	.long 0xbeef
+  0xe80: efbe0000     | 	.long 0xbeef
+  0xe84: efbe0000     | 	.long 0xbeef
+  0xe88: efbe0000     | 	.long 0xbeef
+  0xe8c: efbe0000     | 	.long 0xbeef
+  0xe90: efbe0000     | 	.long 0xbeef
+  0xe94: efbe0000     | 	.long 0xbeef
+  0xe98: efbe0000     | 	.long 0xbeef
+  0xe9c: efbe0000     | 	.long 0xbeef
+  0xea0: efbe0000     | 	.long 0xbeef
+  0xea4: efbe0000     | 	.long 0xbeef
+  0xea8: efbe0000     | 	.long 0xbeef
+  0xeac: efbe0000     | 	.long 0xbeef
+  0xeb0: efbe0000     | 	.long 0xbeef
+  0xeb4: efbe0000     | 	.long 0xbeef
+  0xeb8: efbe0000     | 	.long 0xbeef
+  0xebc: efbe0000     | 	.long 0xbeef
+  0xec0: efbe0000     | 	.long 0xbeef
+  0xec4: efbe0000     | 	.long 0xbeef
+  0xec8: efbe0000     | 	.long 0xbeef
+  0xecc: efbe0000     | 	.long 0xbeef
+  0xed0: efbe0000     | 	.long 0xbeef
+  0xed4: efbe0000     | 	.long 0xbeef
+  0xed8: efbe0000     | 	.long 0xbeef
+  0xedc: efbe0000     | 	.long 0xbeef
+  0xee0: efbe0000     | 	.long 0xbeef
+  0xee4: efbe0000     | 	.long 0xbeef
+  0xee8: efbe0000     | 	.long 0xbeef
+  0xeec: efbe0000     | 	.long 0xbeef
+  0xef0: efbe0000     | 	.long 0xbeef
+  0xef4: efbe0000     | 	.long 0xbeef
+  0xef8: efbe0000     | 	.long 0xbeef
+  0xefc: efbe0000     | 	.long 0xbeef
+  0xf00: efbe0000     | 	.long 0xbeef
+  0xf04: efbe0000     | 	.long 0xbeef
+  0xf08: efbe0000     | 	.long 0xbeef
+  0xf0c: efbe0000     | 	.long 0xbeef
+  0xf10: efbe0000     | 	.long 0xbeef
+  0xf14: efbe0000     | 	.long 0xbeef
+  0xf18: efbe0000     | 	.long 0xbeef
+  0xf1c: efbe0000     | 	.long 0xbeef
+  0xf20: efbe0000     | 	.long 0xbeef
+  0xf24: efbe0000     | 	.long 0xbeef
+  0xf28: efbe0000     | 	.long 0xbeef
+  0xf2c: efbe0000     | 	.long 0xbeef
+  0xf30: efbe0000     | 	.long 0xbeef
+  0xf34: efbe0000     | 	.long 0xbeef
+  0xf38: efbe0000     | 	.long 0xbeef
+  0xf3c: efbe0000     | 	.long 0xbeef
+  0xf40: efbe0000     | 	.long 0xbeef
+  0xf44: efbe0000     | 	.long 0xbeef
+  0xf48: efbe0000     | 	.long 0xbeef
+  0xf4c: efbeadde     | 	.long 0xdeadbeef
                       | 
-  0x290:              | .align 4
+  0xf50:              | .align 4
                       | # Run time stack
-  0x290: 00000000     | 	.long 0
-  0x294: 00000000     | 	.long 0
-  0x298: 00000000     | 	.long 0
-  0x29c: 00000000     | 	.long 0
-  0x2a0: 00000000     | 	.long 0
-  0x2a4: 00000000     | 	.long 0
-  0x2a8: 00000000     | 	.long 0
-  0x2ac: 00000000     | 	.long 0
-  0x2b0: 00000000     | 	.long 0
-  0x2b4: 00000000     | 	.long 0
-  0x2b8:              | Stack:
+  0xf50: 00000000     | 	.long 0
+  0xf54: 00000000     | 	.long 0
+  0xf58: 00000000     | 	.long 0
+  0xf5c: 00000000     | 	.long 0
+  0xf60: 00000000     | 	.long 0
+  0xf64: 00000000     | 	.long 0
+  0xf68: 00000000     | 	.long 0
+  0xf6c: 00000000     | 	.long 0
+  0xf70: 00000000     | 	.long 0
+  0xf74: 00000000     | 	.long 0
+  0xf78:              | Stack:

@@ -1,19 +1,20 @@
 #######################################################################
-# Test for copying block of size 4;
+# Test for copying block of size 15;
 #######################################################################
 	.pos 0
 main:	irmovl Stack, %esp  	# Set up stack pointer
 	irmovl Stack, %ebp  	# Set up base pointer
 
 	# Set up arguments for copy function and then invoke it
-	irmovl 4, %eax		# src and dst have 4 elements
+	irmovl 15, %eax		# src and dst have 15 elements
 	pushl %eax
 	irmovl dest, %eax	# dst array
 	pushl %eax
 	irmovl src, %eax	# src array
 	pushl %eax
 	call ncopy		 
-	halt			# should halt with num nonzeros in %eax
+	call check	        # Call checker code
+        halt                    # should halt with 0xaaaa in %eax
 # Kyle Weller
 # clkrbj
 #/* $begin ncopy-ys */
@@ -854,6 +855,33 @@ JTStart:
 	.long	JT58
 	.long	JT59
 JTEnd:	.long	JT60
+   # This is the correctness checking code.  It checks that
+   # %eax has 14, and that the destination holds values 0 through 14
+   # The function sets %eax to 0xaaaa if all checks pass, 
+   # to %0xeeee if the count is wrong, and %0xffff if the copying is incorrect
+check: irmovl $14,%edx
+   subl %edx,%eax
+   je check2
+   irmovl $0xeeee,%eax
+   jmp cdone
+check2: xorl %eax,%eax  # Value being tested
+   irmovl dest, %edx     # Pointer to next value to check
+   irmovl $15,%ecx      # Counter
+   andl %ecx,%ecx
+   je csuccess          # done
+cloop: mrmovl (%edx),%esi  # Get *dest
+   subl %eax,%esi          # Subtract val
+   je cok                  # If nonzero, fail
+   irmovl $0xffff, %eax   # Bad copying
+   jmp cdone
+cok: irmovl $4,%esi
+   addl %esi,%edx          # dest ++
+   irmovl $1,%esi
+   addl %esi,%eax          # val++
+   subl %esi,%ecx          # cnt--
+   jg cloop
+csuccess: irmovl $0xaaaa,%eax
+cdone: ret
 #################################################################### 
 # Epilogue code for the correctness testing driver
 ####################################################################
