@@ -1,0 +1,60 @@
+#
+# Kyle Weller
+# clkrbj 62-924-1035
+# 
+# copy and checksum src and dest.
+# return checksum
+# manually control frame pointers
+#
+# Initial code
+.pos 0 
+init:	irmovl Stack, %esp 
+	    irmovl Stack, %ebp 
+	    jmp main 
+ 
+    	.align 4 
+# Source block 
+src: 
+	    .long 0x00a 
+	    .long 0x0b0 
+	    .long 0xc00 
+# Destination block 
+dest: 
+	    .long 0x111 
+	    .long 0x222 
+	    .long 0x333 
+ 
+main:	irmovl $3,%eax 
+	    pushl %eax 
+	    irmovl dest,%edx 
+	    pushl %edx 
+    	irmovl src,%ecx 
+    	pushl %ecx 
+    	call copy 
+    	halt 
+ 
+copy:	pushl %ebp 
+    	rrmovl %esp,%ebp 
+    	mrmovl 8(%ebp),%ecx	  #ecx = src 
+    	mrmovl 12(%ebp),%ebx	#ebx = dest 
+    	mrmovl 16(%ebp),%edx	#edx = len 
+    	irmovl $0,%eax		    #result = 0 
+    	andl %edx,%edx 
+    	je End 
+loop:	mrmovl (%ecx),%esi	  #get *src 
+	    rmmovl %esi,(%ebx)	  #scr = dest 
+    	xorl %esi,%eax		    #result ^= src 
+    	irmovl $4,%edi		    #set %edi to 4 
+    	addl %edi,%ecx		    #+4 
+    	addl %edi,%ebx		    #+4 
+    	irmovl $-1,%edi	      #set %edi to -1  
+    	addl %edi,%edx        # len - 1 
+    	jne    loop           # Stop when 0 
+ 
+ 
+End:	popl %ebp 
+	    ret 
+.pos 0x200 
+Stack: 
+#Make sure to have newline after last line of code
+
