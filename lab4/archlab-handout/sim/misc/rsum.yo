@@ -1,0 +1,50 @@
+                      | #
+                      | # Kyle Weller
+                      | # clkrbj 62-924-1035
+                      | # 
+                      | # sum elements of a linked list recursively
+                      | # when calling with recursion push ls on stack as argument to next call of function.
+                      | # manually control frame pointers
+                      | #
+                      | # Initial code
+  0x000:              | .pos 0
+  0x000: 308400020000 | irmovl Stack,%esp
+  0x006: 2045         | rrmovl %esp,%ebp
+  0x008: 308218000000 | irmovl ele1,%edx
+  0x00e: a028         | pushl %edx
+  0x010: 8030000000   | call rsum_list
+  0x015: 10           | halt
+                      | # Sample linked list
+  0x018:              | .align 4
+  0x018:              | ele1:
+  0x018: 0a000000     | .long 0x00a
+  0x01c: 20000000     | .long ele2
+  0x020:              | ele2:
+  0x020: b0000000     | .long 0x0b0
+  0x024: 28000000     | .long ele3
+  0x028:              | ele3:
+  0x028: 000c0000     | .long 0xc00
+  0x02c: 00000000     | .long 0
+  0x030:              | rsum_list:
+  0x030: a058         |       pushl   %ebp
+  0x032: 2045         |       rrmovl  %esp,%ebp
+  0x034: 502508000000 |       mrmovl  0x8(%ebp),%edx			  # ls
+  0x03a: 6300         |       xorl    %eax,%eax			        # val=0
+  0x03c: a038         |       pushl   %ebx					        # save %ebx
+  0x03e: 6222         |       andl   	%edx,%edx			        # ls==0?
+  0x040: 7362000000   |       je     	End					          # if so, gotoEnd
+  0x045: 30860c000000 |       irmovl  $0xc,%esi				      # 12
+  0x04b: 6164         |       subl    %esi,%esp				      # %esp-=12
+  0x04d: 503200000000 |       mrmovl  (%edx),%ebx			      # ls->val
+  0x053: 501204000000 |       mrmovl	0x4(%edx),%ecx			  # ls->next
+  0x059: a018         |       pushl  	%ecx					        # use ls as the argument
+  0x05b: 8030000000   |       call    rsum_list				      # call rsum_list by recursion
+  0x060: 6030         |       addl    %ebx,%eax			        # val+=ls->val
+  0x062: 5035fcffffff | End:  mrmovl  0xfffffffc(%ebp),%ebx #restore %ebx
+  0x068: 2054         | 	    rrmovl 	%ebp, %esp
+  0x06a: b058         | 	    popl  	%ebp  
+  0x06c: 90           | 	    ret 
+  0x200:              | .pos 0x200
+  0x200:              | Stack:
+                      | #Make sure to have newline after last line of code
+                      | 
