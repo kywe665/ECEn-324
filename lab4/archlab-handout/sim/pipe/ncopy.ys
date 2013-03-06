@@ -1,840 +1,104 @@
-# Kyle Weller
-# clkrbj
 #/* $begin ncopy-ys */
 ##################################################################
 # ncopy.ys - Copy a src block of len ints to dst.
 # Return the number of positive ints (>0) contained in src.
 #
-# Include your name and ID here.
-#
-# Describe how and why you modified the baseline code.
-#
 ##################################################################
-	# Function prologue. Do not modify.
-ncopy:	pushl %ebp						# Save old frame pointer
-	rrmovl %esp,%ebp					# Set up new frame pointer
-	pushl %esi						# Save callee-save regs
-	pushl %ebx
-	mrmovl 8(%ebp),%ebx					# src
-	mrmovl 12(%ebp),%ecx					# dst
-	mrmovl 16(%ebp),%edx					# len
-
-	# Loop header	
-	rrmovl %edx, %eax					# count=len
-	iaddl $-60, %edx					# like P409 limit = length-2 the increasment is 61
-	jle Out							# if len<=0, goto Out
-
-
-Loop1:	mrmovl 0(%ebx), %esi					# read val from (src + 0)...
-	rmmovl %esi, 0(%ecx)					# ...and store it to (dst + 0
-	andl %esi, %esi						# val > 0?
-	jg Pos1							# if so, goto Pos1:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos1:	mrmovl 4(%ebx), %esi					# read val from (src + 1)...
-	rmmovl %esi, 4(%ecx)					# ...and store it to (dst + 1
-	andl %esi, %esi						# val > 0?
-	jg Pos2							# if so, goto Pos2:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos2:	mrmovl 8(%ebx), %esi					# read val from (src + 2)...
-	rmmovl %esi, 8(%ecx)					# ...and store it to (dst + 2
-	andl %esi, %esi						# val > 0?
-	jg Pos3							# if so, goto Pos3:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos3:	mrmovl 12(%ebx), %esi					# read val from (src + 3)...
-	rmmovl %esi, 12(%ecx)					# ...and store it to (dst + 3
-	andl %esi, %esi						# val > 0?
-	jg Pos4							# if so, goto Pos4:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos4:	mrmovl 16(%ebx), %esi					# read val from (src + 4)...
-	rmmovl %esi, 16(%ecx)					# ...and store it to (dst + 4
-	andl %esi, %esi						# val > 0?
-	jg Pos5							# if so, goto Pos5:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos5:	mrmovl 20(%ebx), %esi					# read val from (src + 5)...
-	rmmovl %esi, 20(%ecx)					# ...and store it to (dst + 5
-	andl %esi, %esi						# val > 0?
-	jg Pos6							# if so, goto Pos6:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos6:	mrmovl 24(%ebx), %esi					# read val from (src + 6)...
-	rmmovl %esi, 24(%ecx)					# ...and store it to (dst + 6
-	andl %esi, %esi						# val > 0?
-	jg Pos7							# if so, goto Pos7:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos7:	mrmovl 28(%ebx), %esi					# read val from (src + 7)...
-	rmmovl %esi, 28(%ecx)					# ...and store it to (dst + 7
-	andl %esi, %esi						# val > 0?
-	jg Pos8							# if so, goto Pos8:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos8:	mrmovl 32(%ebx), %esi					# read val from (src + 8)...
-	rmmovl %esi, 32(%ecx)					# ...and store it to (dst + 8
-	andl %esi, %esi						# val > 0?
-	jg Pos9							# if so, goto Pos9:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos9:	mrmovl 36(%ebx), %esi					# read val from (src + 9)...
-	rmmovl %esi, 36(%ecx)					# ...and store it to (dst + 9
-	andl %esi, %esi						# val > 0?
-	jg Pos10						# if so, goto Pos10:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos10:	mrmovl 40(%ebx), %esi					# read val from (src + 10)...
-	rmmovl %esi, 40(%ecx)					# ...and store it to (dst + 10
-	andl %esi, %esi						# val > 0?
-	jg Pos11						# if so, goto Pos11:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos11:	mrmovl 44(%ebx), %esi					# read val from (src + 11)...
-	rmmovl %esi, 44(%ecx)					# ...and store it to (dst + 11
-	andl %esi, %esi						# val > 0?
-	jg Pos12						# if so, goto Pos12:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos12:	mrmovl 48(%ebx), %esi					# read val from (src + 12)...
-	rmmovl %esi, 48(%ecx)					# ...and store it to (dst + 12
-	andl %esi, %esi						# val > 0?
-	jg Pos13						# if so, goto Pos13:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos13:	mrmovl 52(%ebx), %esi					# read val from (src + 13)...
-	rmmovl %esi, 52(%ecx)					# ...and store it to (dst + 13
-	andl %esi, %esi						# val > 0?
-	jg Pos14						# if so, goto Pos14:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos14:	mrmovl 56(%ebx), %esi					# read val from (src + 14)...
-	rmmovl %esi, 56(%ecx)					# ...and store it to (dst + 14
-	andl %esi, %esi						# val > 0?
-	jg Pos15						# if so, goto Pos15:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos15:	mrmovl 60(%ebx), %esi					# read val from (src + 15)...
-	rmmovl %esi, 60(%ecx)					# ...and store it to (dst + 15
-	andl %esi, %esi						# val > 0?
-	jg Pos16						# if so, goto Pos16:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos16:	mrmovl 64(%ebx), %esi					# read val from (src + 16)...
-	rmmovl %esi, 64(%ecx)					# ...and store it to (dst + 16
-	andl %esi, %esi						# val > 0?
-	jg Pos17						# if so, goto Pos17:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos17:	mrmovl 68(%ebx), %esi					# read val from (src + 17)...
-	rmmovl %esi, 68(%ecx)					# ...and store it to (dst + 17
-	andl %esi, %esi						# val > 0?
-	jg Pos18						# if so, goto Pos18:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos18:	mrmovl 72(%ebx), %esi					# read val from (src + 18)...
-	rmmovl %esi, 72(%ecx)					# ...and store it to (dst + 18
-	andl %esi, %esi						# val > 0?
-	jg Pos19						# if so, goto Pos19:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos19:	mrmovl 76(%ebx), %esi					# read val from (src + 19)...
-	rmmovl %esi, 76(%ecx)					# ...and store it to (dst + 19
-	andl %esi, %esi						# val > 0?
-	jg Pos20						# if so, goto Pos20:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos20:	mrmovl 80(%ebx), %esi					# read val from (src + 20)...
-	rmmovl %esi, 80(%ecx)					# ...and store it to (dst + 20
-	andl %esi, %esi						# val > 0?
-	jg Pos21						# if so, goto Pos21:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos21:	mrmovl 84(%ebx), %esi					# read val from (src + 21)...
-	rmmovl %esi, 84(%ecx)					# ...and store it to (dst + 21
-	andl %esi, %esi						# val > 0?
-	jg Pos22						# if so, goto Pos22:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos22:	mrmovl 88(%ebx), %esi					# read val from (src + 22)...
-	rmmovl %esi, 88(%ecx)					# ...and store it to (dst + 22
-	andl %esi, %esi						# val > 0?
-	jg Pos23						# if so, goto Pos23:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos23:	mrmovl 92(%ebx), %esi					# read val from (src + 23)...
-	rmmovl %esi, 92(%ecx)					# ...and store it to (dst + 23
-	andl %esi, %esi						# val > 0?
-	jg Pos24						# if so, goto Pos24:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos24:	mrmovl 96(%ebx), %esi					# read val from (src + 24)...
-	rmmovl %esi, 96(%ecx)					# ...and store it to (dst + 24
-	andl %esi, %esi						# val > 0?
-	jg Pos25						# if so, goto Pos25:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos25:	mrmovl 100(%ebx), %esi					# read val from (src + 25)...
-	rmmovl %esi, 100(%ecx)					# ...and store it to (dst + 25
-	andl %esi, %esi						# val > 0?
-	jg Pos26						# if so, goto Pos26:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos26:	mrmovl 104(%ebx), %esi					# read val from (src + 26)...
-	rmmovl %esi, 104(%ecx)					# ...and store it to (dst + 26
-	andl %esi, %esi						# val > 0?
-	jg Pos27						# if so, goto Pos27:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos27:	mrmovl 108(%ebx), %esi					# read val from (src + 27)...
-	rmmovl %esi, 108(%ecx)					# ...and store it to (dst + 27
-	andl %esi, %esi						# val > 0?
-	jg Pos28						# if so, goto Pos28:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos28:	mrmovl 112(%ebx), %esi					# read val from (src + 28)...
-	rmmovl %esi, 112(%ecx)					# ...and store it to (dst + 28
-	andl %esi, %esi						# val > 0?
-	jg Pos29						# if so, goto Pos29:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos29:	mrmovl 116(%ebx), %esi					# read val from (src + 29)...
-	rmmovl %esi, 116(%ecx)					# ...and store it to (dst + 29
-	andl %esi, %esi						# val > 0?
-	jg Pos30						# if so, goto Pos30:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos30:	mrmovl 120(%ebx), %esi					# read val from (src + 30)...
-	rmmovl %esi, 120(%ecx)					# ...and store it to (dst + 30
-	andl %esi, %esi						# val > 0?
-	jg Pos31						# if so, goto Pos31:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos31:	mrmovl 124(%ebx), %esi					# read val from (src + 31)...
-	rmmovl %esi, 124(%ecx)					# ...and store it to (dst + 31
-	andl %esi, %esi						# val > 0?
-	jg Pos32						# if so, goto Pos32:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos32:	mrmovl 128(%ebx), %esi					# read val from (src + 32)...
-	rmmovl %esi, 128(%ecx)					# ...and store it to (dst + 32
-	andl %esi, %esi						# val > 0?
-	jg Pos33						# if so, goto Pos33:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos33:	mrmovl 132(%ebx), %esi					# read val from (src + 33)...
-	rmmovl %esi, 132(%ecx)					# ...and store it to (dst + 33
-	andl %esi, %esi						# val > 0?
-	jg Pos34						# if so, goto Pos34:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos34:	mrmovl 136(%ebx), %esi					# read val from (src + 34)...
-	rmmovl %esi, 136(%ecx)					# ...and store it to (dst + 34
-	andl %esi, %esi						# val > 0?
-	jg Pos35						# if so, goto Pos35:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos35:	mrmovl 140(%ebx), %esi					# read val from (src + 35)...
-	rmmovl %esi, 140(%ecx)					# ...and store it to (dst + 35
-	andl %esi, %esi						# val > 0?
-	jg Pos36						# if so, goto Pos36:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos36:	mrmovl 144(%ebx), %esi					# read val from (src + 36)...
-	rmmovl %esi, 144(%ecx)					# ...and store it to (dst + 36
-	andl %esi, %esi						# val > 0?
-	jg Pos37						# if so, goto Pos37:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos37:	mrmovl 148(%ebx), %esi					# read val from (src + 37)...
-	rmmovl %esi, 148(%ecx)					# ...and store it to (dst + 37
-	andl %esi, %esi						# val > 0?
-	jg Pos38						# if so, goto Pos38:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos38:	mrmovl 152(%ebx), %esi					# read val from (src + 38)...
-	rmmovl %esi, 152(%ecx)					# ...and store it to (dst + 38
-	andl %esi, %esi						# val > 0?
-	jg Pos39						# if so, goto Pos39:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos39:	mrmovl 156(%ebx), %esi					# read val from (src + 39)...
-	rmmovl %esi, 156(%ecx)					# ...and store it to (dst + 39
-	andl %esi, %esi						# val > 0?
-	jg Pos40						# if so, goto Pos40:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos40:	mrmovl 160(%ebx), %esi					# read val from (src + 40)...
-	rmmovl %esi, 160(%ecx)					# ...and store it to (dst + 40
-	andl %esi, %esi						# val > 0?
-	jg Pos41						# if so, goto Pos41:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos41:	mrmovl 164(%ebx), %esi					# read val from (src + 41)...
-	rmmovl %esi, 164(%ecx)					# ...and store it to (dst + 41
-	andl %esi, %esi						# val > 0?
-	jg Pos42						# if so, goto Pos42:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos42:	mrmovl 168(%ebx), %esi					# read val from (src + 42)...
-	rmmovl %esi, 168(%ecx)					# ...and store it to (dst + 42
-	andl %esi, %esi						# val > 0?
-	jg Pos43						# if so, goto Pos43:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos43:	mrmovl 172(%ebx), %esi					# read val from (src + 43)...
-	rmmovl %esi, 172(%ecx)					# ...and store it to (dst + 43
-	andl %esi, %esi						# val > 0?
-	jg Pos44						# if so, goto Pos44:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos44:	mrmovl 176(%ebx), %esi					# read val from (src + 44)...
-	rmmovl %esi, 176(%ecx)					# ...and store it to (dst + 44
-	andl %esi, %esi						# val > 0?
-	jg Pos45						# if so, goto Pos45:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos45:	mrmovl 180(%ebx), %esi					# read val from (src + 45)...
-	rmmovl %esi, 180(%ecx)					# ...and store it to (dst + 45
-	andl %esi, %esi						# val > 0?
-	jg Pos46						# if so, goto Pos46:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos46:	mrmovl 184(%ebx), %esi					# read val from (src + 46)...
-	rmmovl %esi, 184(%ecx)					# ...and store it to (dst + 46
-	andl %esi, %esi						# val > 0?
-	jg Pos47						# if so, goto Pos47:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos47:	mrmovl 188(%ebx), %esi					# read val from (src + 47)...
-	rmmovl %esi, 188(%ecx)					# ...and store it to (dst + 47
-	andl %esi, %esi						# val > 0?
-	jg Pos48						# if so, goto Pos48:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos48:	mrmovl 192(%ebx), %esi					# read val from (src + 48)...
-	rmmovl %esi, 192(%ecx)					# ...and store it to (dst + 48
-	andl %esi, %esi						# val > 0?
-	jg Pos49						# if so, goto Pos49:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos49:	mrmovl 196(%ebx), %esi					# read val from (src + 49)...
-	rmmovl %esi, 196(%ecx)					# ...and store it to (dst + 49
-	andl %esi, %esi						# val > 0?
-	jg Pos50						# if so, goto Pos50:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos50:	mrmovl 200(%ebx), %esi					# read val from (src + 50)...
-	rmmovl %esi, 200(%ecx)					# ...and store it to (dst + 50
-	andl %esi, %esi						# val > 0?
-	jg Pos51						# if so, goto Pos51:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos51:	mrmovl 204(%ebx), %esi					# read val from (src + 51)...
-	rmmovl %esi, 204(%ecx)					# ...and store it to (dst + 51
-	andl %esi, %esi						# val > 0?
-	jg Pos52						# if so, goto Pos52:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos52:	mrmovl 208(%ebx), %esi					# read val from (src + 52)...
-	rmmovl %esi, 208(%ecx)					# ...and store it to (dst + 52
-	andl %esi, %esi						# val > 0?
-	jg Pos53						# if so, goto Pos53:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos53:	mrmovl 212(%ebx), %esi					# read val from (src + 53)...
-	rmmovl %esi, 212(%ecx)					# ...and store it to (dst + 53
-	andl %esi, %esi						# val > 0?
-	jg Pos54						# if so, goto Pos54:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos54:	mrmovl 216(%ebx), %esi					# read val from (src + 54)...
-	rmmovl %esi, 216(%ecx)					# ...and store it to (dst + 54
-	andl %esi, %esi						# val > 0?
-	jg Pos55						# if so, goto Pos55:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos55:	mrmovl 220(%ebx), %esi					# read val from (src + 55)...
-	rmmovl %esi, 220(%ecx)					# ...and store it to (dst + 55
-	andl %esi, %esi						# val > 0?
-	jg Pos56						# if so, goto Pos56:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos56:	mrmovl 224(%ebx), %esi					# read val from (src + 56)...
-	rmmovl %esi, 224(%ecx)					# ...and store it to (dst + 56
-	andl %esi, %esi						# val > 0?
-	jg Pos57						# if so, goto Pos57:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos57:	mrmovl 228(%ebx), %esi					# read val from (src + 57)...
-	rmmovl %esi, 228(%ecx)					# ...and store it to (dst + 57
-	andl %esi, %esi						# val > 0?
-	jg Pos58						# if so, goto Pos58:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos58:	mrmovl 232(%ebx), %esi					# read val from (src + 58)...
-	rmmovl %esi, 232(%ecx)					# ...and store it to (dst + 58
-	andl %esi, %esi						# val > 0?
-	jg Pos59						# if so, goto Pos59:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos59:	mrmovl 236(%ebx), %esi					# read val from (src + 59)...
-	rmmovl %esi, 236(%ecx)					# ...and store it to (dst + 59
-	andl %esi, %esi						# val > 0?
-	jg Pos60						# if so, goto Pos60:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos60:	mrmovl 240(%ebx), %esi					# read val from (src + 60)...
-	rmmovl %esi, 240(%ecx)					# ...and store it to (dst + 60
-	andl %esi, %esi						# val > 0?
-	jg Pos61						# if so, goto Pos61:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-Pos61:
-
-	iaddl $244, %ebx					# src+=61
-	iaddl $244, %ecx					# dst+=61
-	iaddl $-61, %edx					# len-=61
-	jg Loop1
-
-Out:	addl %edx,%edx						# len*4
-	addl %edx,%edx
-	mrmovl	JTEnd(%edx), %edx				# jump position=4*(len+59)+JTStart
-	pushl %edx						# goto jump position
-	ret
-
-
-JT60:	mrmovl 236(%ebx), %esi					# read val from (src + 59)...
-	rmmovl %esi, 236(%ecx)					# ...and store it to (dst + 59
-	andl %esi, %esi						# val > 0?
-	jg JT59							# if so, goto JT59:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT59:	mrmovl 232(%ebx), %esi					# read val from (src + 58)...
-	rmmovl %esi, 232(%ecx)					# ...and store it to (dst + 58
-	andl %esi, %esi						# val > 0?
-	jg JT58							# if so, goto JT58:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT58:	mrmovl 228(%ebx), %esi					# read val from (src + 57)...
-	rmmovl %esi, 228(%ecx)					# ...and store it to (dst + 57
-	andl %esi, %esi						# val > 0?
-	jg JT57							# if so, goto JT57:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT57:	mrmovl 224(%ebx), %esi					# read val from (src + 56)...
-	rmmovl %esi, 224(%ecx)					# ...and store it to (dst + 56
-	andl %esi, %esi						# val > 0?
-	jg JT56							# if so, goto JT56:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT56:	mrmovl 220(%ebx), %esi					# read val from (src + 55)...
-	rmmovl %esi, 220(%ecx)					# ...and store it to (dst + 55
-	andl %esi, %esi						# val > 0?
-	jg JT55							# if so, goto JT55:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT55:	mrmovl 216(%ebx), %esi					# read val from (src + 54)...
-	rmmovl %esi, 216(%ecx)					# ...and store it to (dst + 54
-	andl %esi, %esi						# val > 0?
-	jg JT54							# if so, goto JT54:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT54:	mrmovl 212(%ebx), %esi					# read val from (src + 53)...
-	rmmovl %esi, 212(%ecx)					# ...and store it to (dst + 53
-	andl %esi, %esi						# val > 0?
-	jg JT53							# if so, goto JT53:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT53:	mrmovl 208(%ebx), %esi					# read val from (src + 52)...
-	rmmovl %esi, 208(%ecx)					# ...and store it to (dst + 52
-	andl %esi, %esi						# val > 0?
-	jg JT52							# if so, goto JT52:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT52:	mrmovl 204(%ebx), %esi					# read val from (src + 51)...
-	rmmovl %esi, 204(%ecx)					# ...and store it to (dst + 51
-	andl %esi, %esi						# val > 0?
-	jg JT51							# if so, goto JT51:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT51:	mrmovl 200(%ebx), %esi					# read val from (src + 50)...
-	rmmovl %esi, 200(%ecx)					# ...and store it to (dst + 50
-	andl %esi, %esi						# val > 0?
-	jg JT50							# if so, goto JT50:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT50:	mrmovl 196(%ebx), %esi					# read val from (src + 49)...
-	rmmovl %esi, 196(%ecx)					# ...and store it to (dst + 49
-	andl %esi, %esi						# val > 0?
-	jg JT49							# if so, goto JT49:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT49:	mrmovl 192(%ebx), %esi					# read val from (src + 48)...
-	rmmovl %esi, 192(%ecx)					# ...and store it to (dst + 48
-	andl %esi, %esi						# val > 0?
-	jg JT48							# if so, goto JT48:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT48:	mrmovl 188(%ebx), %esi					# read val from (src + 47)...
-	rmmovl %esi, 188(%ecx)					# ...and store it to (dst + 47
-	andl %esi, %esi						# val > 0?
-	jg JT47							# if so, goto JT47:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT47:	mrmovl 184(%ebx), %esi					# read val from (src + 46)...
-	rmmovl %esi, 184(%ecx)					# ...and store it to (dst + 46
-	andl %esi, %esi						# val > 0?
-	jg JT46							# if so, goto JT46:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT46:	mrmovl 180(%ebx), %esi					# read val from (src + 45)...
-	rmmovl %esi, 180(%ecx)					# ...and store it to (dst + 45
-	andl %esi, %esi						# val > 0?
-	jg JT45							# if so, goto JT45:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT45:	mrmovl 176(%ebx), %esi					# read val from (src + 44)...
-	rmmovl %esi, 176(%ecx)					# ...and store it to (dst + 44
-	andl %esi, %esi						# val > 0?
-	jg JT44							# if so, goto JT44:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT44:	mrmovl 172(%ebx), %esi					# read val from (src + 43)...
-	rmmovl %esi, 172(%ecx)					# ...and store it to (dst + 43
-	andl %esi, %esi						# val > 0?
-	jg JT43							# if so, goto JT43:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT43:	mrmovl 168(%ebx), %esi					# read val from (src + 42)...
-	rmmovl %esi, 168(%ecx)					# ...and store it to (dst + 42
-	andl %esi, %esi						# val > 0?
-	jg JT42							# if so, goto JT42:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT42:	mrmovl 164(%ebx), %esi					# read val from (src + 41)...
-	rmmovl %esi, 164(%ecx)					# ...and store it to (dst + 41
-	andl %esi, %esi						# val > 0?
-	jg JT41							# if so, goto JT41:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT41:	mrmovl 160(%ebx), %esi					# read val from (src + 40)...
-	rmmovl %esi, 160(%ecx)					# ...and store it to (dst + 40
-	andl %esi, %esi						# val > 0?
-	jg JT40							# if so, goto JT40:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT40:	mrmovl 156(%ebx), %esi					# read val from (src + 39)...
-	rmmovl %esi, 156(%ecx)					# ...and store it to (dst + 39
-	andl %esi, %esi						# val > 0?
-	jg JT39							# if so, goto JT39:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT39:	mrmovl 152(%ebx), %esi					# read val from (src + 38)...
-	rmmovl %esi, 152(%ecx)					# ...and store it to (dst + 38
-	andl %esi, %esi						# val > 0?
-	jg JT38							# if so, goto JT38:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT38:	mrmovl 148(%ebx), %esi					# read val from (src + 37)...
-	rmmovl %esi, 148(%ecx)					# ...and store it to (dst + 37
-	andl %esi, %esi						# val > 0?
-	jg JT37							# if so, goto JT37:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT37:	mrmovl 144(%ebx), %esi					# read val from (src + 36)...
-	rmmovl %esi, 144(%ecx)					# ...and store it to (dst + 36
-	andl %esi, %esi						# val > 0?
-	jg JT36							# if so, goto JT36:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT36:	mrmovl 140(%ebx), %esi					# read val from (src + 35)...
-	rmmovl %esi, 140(%ecx)					# ...and store it to (dst + 35
-	andl %esi, %esi						# val > 0?
-	jg JT35							# if so, goto JT35:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT35:	mrmovl 136(%ebx), %esi					# read val from (src + 34)...
-	rmmovl %esi, 136(%ecx)					# ...and store it to (dst + 34
-	andl %esi, %esi						# val > 0?
-	jg JT34							# if so, goto JT34:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT34:	mrmovl 132(%ebx), %esi					# read val from (src + 33)...
-	rmmovl %esi, 132(%ecx)					# ...and store it to (dst + 33
-	andl %esi, %esi						# val > 0?
-	jg JT33							# if so, goto JT33:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT33:	mrmovl 128(%ebx), %esi					# read val from (src + 32)...
-	rmmovl %esi, 128(%ecx)					# ...and store it to (dst + 32
-	andl %esi, %esi						# val > 0?
-	jg JT32							# if so, goto JT32:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT32:	mrmovl 124(%ebx), %esi					# read val from (src + 31)...
-	rmmovl %esi, 124(%ecx)					# ...and store it to (dst + 31
-	andl %esi, %esi						# val > 0?
-	jg JT31							# if so, goto JT31:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT31:	mrmovl 120(%ebx), %esi					# read val from (src + 30)...
-	rmmovl %esi, 120(%ecx)					# ...and store it to (dst + 30
-	andl %esi, %esi						# val > 0?
-	jg JT30							# if so, goto JT30:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT30:	mrmovl 116(%ebx), %esi					# read val from (src + 29)...
-	rmmovl %esi, 116(%ecx)					# ...and store it to (dst + 29
-	andl %esi, %esi						# val > 0?
-	jg JT29							# if so, goto JT29:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT29:	mrmovl 112(%ebx), %esi					# read val from (src + 28)...
-	rmmovl %esi, 112(%ecx)					# ...and store it to (dst + 28
-	andl %esi, %esi						# val > 0?
-	jg JT28							# if so, goto JT28:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT28:	mrmovl 108(%ebx), %esi					# read val from (src + 27)...
-	rmmovl %esi, 108(%ecx)					# ...and store it to (dst + 27
-	andl %esi, %esi						# val > 0?
-	jg JT27							# if so, goto JT27:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT27:	mrmovl 104(%ebx), %esi					# read val from (src + 26)...
-	rmmovl %esi, 104(%ecx)					# ...and store it to (dst + 26
-	andl %esi, %esi						# val > 0?
-	jg JT26							# if so, goto JT26:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT26:	mrmovl 100(%ebx), %esi					# read val from (src + 25)...
-	rmmovl %esi, 100(%ecx)					# ...and store it to (dst + 25
-	andl %esi, %esi						# val > 0?
-	jg JT25							# if so, goto JT25:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT25:	mrmovl 96(%ebx), %esi					# read val from (src + 24)...
-	rmmovl %esi, 96(%ecx)					# ...and store it to (dst + 24
-	andl %esi, %esi						# val > 0?
-	jg JT24							# if so, goto JT24:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT24:	mrmovl 92(%ebx), %esi					# read val from (src + 23)...
-	rmmovl %esi, 92(%ecx)					# ...and store it to (dst + 23
-	andl %esi, %esi						# val > 0?
-	jg JT23							# if so, goto JT23:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT23:	mrmovl 88(%ebx), %esi					# read val from (src + 22)...
-	rmmovl %esi, 88(%ecx)					# ...and store it to (dst + 22
-	andl %esi, %esi						# val > 0?
-	jg JT22							# if so, goto JT22:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT22:	mrmovl 84(%ebx), %esi					# read val from (src + 21)...
-	rmmovl %esi, 84(%ecx)					# ...and store it to (dst + 21
-	andl %esi, %esi						# val > 0?
-	jg JT21							# if so, goto JT21:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT21:	mrmovl 80(%ebx), %esi					# read val from (src + 20)...
-	rmmovl %esi, 80(%ecx)					# ...and store it to (dst + 20
-	andl %esi, %esi						# val > 0?
-	jg JT20							# if so, goto JT20:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT20:	mrmovl 76(%ebx), %esi					# read val from (src + 19)...
-	rmmovl %esi, 76(%ecx)					# ...and store it to (dst + 19
-	andl %esi, %esi						# val > 0?
-	jg JT19							# if so, goto JT19:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT19:	mrmovl 72(%ebx), %esi					# read val from (src + 18)...
-	rmmovl %esi, 72(%ecx)					# ...and store it to (dst + 18
-	andl %esi, %esi						# val > 0?
-	jg JT18							# if so, goto JT18:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT18:	mrmovl 68(%ebx), %esi					# read val from (src + 17)...
-	rmmovl %esi, 68(%ecx)					# ...and store it to (dst + 17
-	andl %esi, %esi						# val > 0?
-	jg JT17							# if so, goto JT17:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT17:	mrmovl 64(%ebx), %esi					# read val from (src + 16)...
-	rmmovl %esi, 64(%ecx)					# ...and store it to (dst + 16
-	andl %esi, %esi						# val > 0?
-	jg JT16							# if so, goto JT16:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT16:	mrmovl 60(%ebx), %esi					# read val from (src + 15)...
-	rmmovl %esi, 60(%ecx)					# ...and store it to (dst + 15
-	andl %esi, %esi						# val > 0?
-	jg JT15							# if so, goto JT15:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT15:	mrmovl 56(%ebx), %esi					# read val from (src + 14)...
-	rmmovl %esi, 56(%ecx)					# ...and store it to (dst + 14
-	andl %esi, %esi						# val > 0?
-	jg JT14							# if so, goto JT14:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT14:	mrmovl 52(%ebx), %esi					# read val from (src + 13)...
-	rmmovl %esi, 52(%ecx)					# ...and store it to (dst + 13
-	andl %esi, %esi						# val > 0?
-	jg JT13							# if so, goto JT13:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT13:	mrmovl 48(%ebx), %esi					# read val from (src + 12)...
-	rmmovl %esi, 48(%ecx)					# ...and store it to (dst + 12
-	andl %esi, %esi						# val > 0?
-	jg JT12							# if so, goto JT12:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT12:	mrmovl 44(%ebx), %esi					# read val from (src + 11)...
-	rmmovl %esi, 44(%ecx)					# ...and store it to (dst + 11
-	andl %esi, %esi						# val > 0?
-	jg JT11							# if so, goto JT11:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT11:	mrmovl 40(%ebx), %esi					# read val from (src + 10)...
-	rmmovl %esi, 40(%ecx)					# ...and store it to (dst + 10
-	andl %esi, %esi						# val > 0?
-	jg JT10							# if so, goto JT10:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT10:	mrmovl 36(%ebx), %esi					# read val from (src + 9)...
-	rmmovl %esi, 36(%ecx)					# ...and store it to (dst + 9
-	andl %esi, %esi						# val > 0?
-	jg JT9							# if so, goto JT9:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT9:	mrmovl 32(%ebx), %esi					# read val from (src + 8)...
-	rmmovl %esi, 32(%ecx)					# ...and store it to (dst + 8
-	andl %esi, %esi						# val > 0?
-	jg JT8							# if so, goto JT8:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT8:	mrmovl 28(%ebx), %esi					# read val from (src + 7)...
-	rmmovl %esi, 28(%ecx)					# ...and store it to (dst + 7
-	andl %esi, %esi						# val > 0?
-	jg JT7							# if so, goto JT7:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT7:	mrmovl 24(%ebx), %esi					# read val from (src + 6)...
-	rmmovl %esi, 24(%ecx)					# ...and store it to (dst + 6
-	andl %esi, %esi						# val > 0?
-	jg JT6							# if so, goto JT6:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT6:	mrmovl 20(%ebx), %esi					# read val from (src + 5)...
-	rmmovl %esi, 20(%ecx)					# ...and store it to (dst + 5
-	andl %esi, %esi						# val > 0?
-	jg JT5							# if so, goto JT5:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT5:	mrmovl 16(%ebx), %esi					# read val from (src + 4)...
-	rmmovl %esi, 16(%ecx)					# ...and store it to (dst + 4
-	andl %esi, %esi						# val > 0?
-	jg JT4							# if so, goto JT4:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT4:	mrmovl 12(%ebx), %esi					# read val from (src + 3)...
-	rmmovl %esi, 12(%ecx)					# ...and store it to (dst + 3
-	andl %esi, %esi						# val > 0?
-	jg JT3							# if so, goto JT3:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT3:	mrmovl 8(%ebx), %esi					# read val from (src + 2)...
-	rmmovl %esi, 8(%ecx)					# ...and store it to (dst + 2
-	andl %esi, %esi						# val > 0?
-	jg JT2							# if so, goto JT2:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT2:	mrmovl 4(%ebx), %esi					# read val from (src + 1)...
-	rmmovl %esi, 4(%ecx)					# ...and store it to (dst + 1
-	andl %esi, %esi						# val > 0?
-	jg JT1							# if so, goto JT1:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT1:	mrmovl 0(%ebx), %esi					# read val from (src + 0)...
-	rmmovl %esi, 0(%ecx)					# ...and store it to (dst + 0
-	andl %esi, %esi						# val > 0?
-	jg JT0							# if so, goto JT0:
-	iaddl $-1, %eax						# execute when val<=0, count--
-
-JT0:
-	# Function epilogue. Do not modify.
-	popl %ebx
-	popl %esi
-	rrmovl %ebp, %esp
-	popl %ebp
-	ret
-
-
-# Jump Table
-	#.align 4
-JTStart:
-	.long	JT0
-	.long	JT1
-	.long	JT2
-	.long	JT3
-	.long	JT4
-	.long	JT5
-	.long	JT6
-	.long	JT7
-	.long	JT8
-	.long	JT9
-	.long	JT10
-	.long	JT11
-	.long	JT12
-	.long	JT13
-	.long	JT14
-	.long	JT15
-	.long	JT16
-	.long	JT17
-	.long	JT18
-	.long	JT19
-	.long	JT20
-	.long	JT21
-	.long	JT22
-	.long	JT23
-	.long	JT24
-	.long	JT25
-	.long	JT26
-	.long	JT27
-	.long	JT28
-	.long	JT29
-	.long	JT30
-	.long	JT31
-	.long	JT32
-	.long	JT33
-	.long	JT34
-	.long	JT35
-	.long	JT36
-	.long	JT37
-	.long	JT38
-	.long	JT39
-	.long	JT40
-	.long	JT41
-	.long	JT42
-	.long	JT43
-	.long	JT44
-	.long	JT45
-	.long	JT46
-	.long	JT47
-	.long	JT48
-	.long	JT49
-	.long	JT50
-	.long	JT51
-	.long	JT52
-	.long	JT53
-	.long	JT54
-	.long	JT55
-	.long	JT56
-	.long	JT57
-	.long	JT58
-	.long	JT59
-JTEnd:	.long	JT60
+# Do not modify this portion
+# Function prologue.
+ncopy:  pushl %ebp    # Save old frame pointer
+  rrmovl %esp,%ebp  # Set up new frame pointer
+  pushl %esi    # Save callee-save regs
+  pushl %ebx
+  pushl %edi
+  mrmovl 8(%ebp),%ebx  # src
+  mrmovl 16(%ebp),%edx  # len
+  mrmovl 12(%ebp),%ecx  # dst
+
+##################################################################
+# You can modify this portion
+  # Loop header
+  xorl %eax,%eax    # count = 0;
+  andl %edx, %edx
+  jle Done
+  iaddl $-4, %edx       # len = len - 4 
+  jl endElems
+
+unRolledLoop:  
+  mrmovl (%ebx), %esi     # read val from src[0] or multiple
+  mrmovl 4(%ebx), %edi   # read val from src[1] or multiple
+  rmmovl %esi, (%ecx)     # store src[0] to dest[0] or multiple
+  andl %esi, %esi       # check src[0] > 0 
+  jle Npos1         # if so, goto Npos1:
+  iaddl $1, %eax       # count++
+
+Npos1:
+  rmmovl %edi, 4(%ecx)    #store src[1] in dest[1] or multiple
+  andl %edi, %edi        #check src[1] > 0 
+  jle Npos2          #if not get the next element
+  iaddl $1, %eax        #count++
+  
+Npos2:
+  mrmovl 8(%ebx), %esi    #read val from src[2] or multiple
+  mrmovl 12(%ebx), %edi    #read val from src[3] or multiple
+  rmmovl %esi, 8(%ecx)    #store val from src[2] in dest[2] or multiple
+  andl %esi, %esi        #check src[2] > 0 
+  jle Npos3          #if not get the next element
+  iaddl $1, %eax        #count++
+  
+Npos3:
+  rmmovl %edi, 12(%ecx)  #store val froms src[3] in dest[3] or multiple
+  andl %edi, %edi      #check src[3] > 0 
+  jle Check        #if not get the next element
+  iaddl $1, %eax      #count++
+
+Check: 
+  iaddl $16 , %ebx    #get to the next four positions of src
+  iaddl $16 , %ecx     #get to the next four positions of dest
+  iaddl $-4, %edx      # len = len - 4
+  jge unRolledLoop    #if there is still 4|count loop again
+
+endElems:
+  iaddl $4, %edx       #add 4 back to get the actual len  
+  
+Rest1:
+  iaddl $-1 , %edx
+  jl Done          #short circuit
+  mrmovl (%ebx), %esi    # read val from src...
+  mrmovl 4(%ebx), %edi  # read val from src...
+  rmmovl %esi, (%ecx)
+  andl %esi, %esi
+  jle Rest2
+  iaddl $1, %eax
+  
+Rest2:
+  iaddl $-1 , %edx
+  jl Done  
+  rmmovl %edi, 4(%ecx)
+  andl %edi, %edi
+  jle Rest3
+  iaddl $1, %eax
+
+Rest3:
+  iaddl $-1 , %edx
+  jl Done
+  mrmovl 8(%ebx), %esi  # read val from src...
+  rmmovl %esi, 8(%ecx)
+  andl %esi, %esi
+  jle Done
+  iaddl $1, %eax  
+
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+  popl %edi               # Restore callee-save registers
+  popl %ebx
+  popl %esi
+  rrmovl %ebp, %esp
+  popl %ebp
+  ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */
