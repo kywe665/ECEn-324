@@ -15,10 +15,14 @@
   0x024: 802a000000   | 	call ncopy		 
   0x029: 10           | 	halt			# should halt with num nonzeros in %eax
                       | #/* $begin ncopy-ys */
+                      | # Kyle Weller
+                      | # clkrbj
+                      | # Used IADDL did not use IRMOVL
+                      | # Loop unrolling by a factor of 4 There are a sections at end to handle the leftover from the loops.
+                      | # alternated using esi and edi to avoid data dependencies and bubbles.
                       | ##################################################################
                       | # ncopy.ys - Copy a src block of len ints to dst.
-                      | # Return the number of positive ints (>0) contained in src.
-                      | #
+                      | # Return the number of positive ints (>0) contained in src.#
                       | ##################################################################
                       | # Do not modify this portion
                       | # Function prologue.
@@ -38,67 +42,67 @@
   0x048: 6222         |   andl %edx, %edx
   0x04a: 7147010000   |   jle Done
   0x04f: c082fcffffff |   iaddl $-4, %edx       # len = len - 4 
-  0x055: 72d5000000   |   jl endElems
+  0x055: 72d5000000   |   jl tail
                       | 
-  0x05a:              | unRolledLoop:  
-  0x05a: 506300000000 |   mrmovl (%ebx), %esi     # read val from src[0] or multiple
-  0x060: 507304000000 |   mrmovl 4(%ebx), %edi   # read val from src[1] or multiple
-  0x066: 406100000000 |   rmmovl %esi, (%ecx)     # store src[0] to dest[0] or multiple
-  0x06c: 6266         |   andl %esi, %esi       # check src[0] > 0 
-  0x06e: 7179000000   |   jle Npos1         # if so, goto Npos1:
-  0x073: c08001000000 |   iaddl $1, %eax       # count++
+  0x05a:              | loop:  
+  0x05a: 506300000000 |   mrmovl (%ebx), %esi   # read val from src
+  0x060: 507304000000 |   mrmovl 4(%ebx), %edi  # read val from src +4
+  0x066: 406100000000 |   rmmovl %esi, (%ecx)   # store src[0] to dest[0]
+  0x06c: 6266         |   andl %esi, %esi       # src[0] > 0 
+  0x06e: 7179000000   |   jle pos1              # yes ? goto pos1:
+  0x073: c08001000000 |   iaddl $1, %eax        # count++
                       | 
-  0x079:              | Npos1:
-  0x079: 407104000000 |   rmmovl %edi, 4(%ecx)    #store src[1] in dest[1] or multiple
-  0x07f: 6277         |   andl %edi, %edi        #check src[1] > 0 
-  0x081: 718c000000   |   jle Npos2          #if not get the next element
-  0x086: c08001000000 |   iaddl $1, %eax        #count++
+  0x079:              | pos1:
+  0x079: 407104000000 |   rmmovl %edi, 4(%ecx)  # store src[1] in dest[1]
+  0x07f: 6277         |   andl %edi, %edi       # src[1] > 0 
+  0x081: 718c000000   |   jle pos2              # No ? get the next element
+  0x086: c08001000000 |   iaddl $1, %eax        # count++
                       |   
-  0x08c:              | Npos2:
-  0x08c: 506308000000 |   mrmovl 8(%ebx), %esi    #read val from src[2] or multiple
-  0x092: 50730c000000 |   mrmovl 12(%ebx), %edi    #read val from src[3] or multiple
-  0x098: 406108000000 |   rmmovl %esi, 8(%ecx)    #store val from src[2] in dest[2] or multiple
-  0x09e: 6266         |   andl %esi, %esi        #check src[2] > 0 
-  0x0a0: 71ab000000   |   jle Npos3          #if not get the next element
-  0x0a5: c08001000000 |   iaddl $1, %eax        #count++
+  0x08c:              | pos2:
+  0x08c: 506308000000 |   mrmovl 8(%ebx), %esi    # read val from src +8
+  0x092: 50730c000000 |   mrmovl 12(%ebx), %edi   # read val from src +12
+  0x098: 406108000000 |   rmmovl %esi, 8(%ecx)    # store src[2] in dest[2]
+  0x09e: 6266         |   andl %esi, %esi         # src[2] > 0 
+  0x0a0: 71ab000000   |   jle pos3                # No ? get the next element
+  0x0a5: c08001000000 |   iaddl $1, %eax          # count++
                       |   
-  0x0ab:              | Npos3:
-  0x0ab: 40710c000000 |   rmmovl %edi, 12(%ecx)  #store val froms src[3] in dest[3] or multiple
-  0x0b1: 6277         |   andl %edi, %edi      #check src[3] > 0 
-  0x0b3: 71be000000   |   jle Check        #if not get the next element
-  0x0b8: c08001000000 |   iaddl $1, %eax      #count++
+  0x0ab:              | pos3:
+  0x0ab: 40710c000000 |   rmmovl %edi, 12(%ecx)   # store src[3] in dest[3]
+  0x0b1: 6277         |   andl %edi, %edi         # src[3] > 0 
+  0x0b3: 71be000000   |   jle next                # No ? get the next element
+  0x0b8: c08001000000 |   iaddl $1, %eax          # count++
                       | 
-  0x0be:              | Check: 
-  0x0be: c08310000000 |   iaddl $16 , %ebx    #get to the next four positions of src
-  0x0c4: c08110000000 |   iaddl $16 , %ecx     #get to the next four positions of dest
-  0x0ca: c082fcffffff |   iaddl $-4, %edx      # len = len - 4
-  0x0d0: 755a000000   |   jge unRolledLoop    #if there is still 4|count loop again
+  0x0be:              | next: 
+  0x0be: c08310000000 |   iaddl $16 , %ebx      # goto next four positions of src
+  0x0c4: c08110000000 |   iaddl $16 , %ecx      # goto next four positions of dest
+  0x0ca: c082fcffffff |   iaddl $-4, %edx       # len = len - 4
+  0x0d0: 755a000000   |   jge loop              # if four left, do again
                       | 
-  0x0d5:              | endElems:
-  0x0d5: c08204000000 |   iaddl $4, %edx       #add 4 back to get the actual len  
+  0x0d5:              | tail:
+  0x0d5: c08204000000 |   iaddl $4, %edx        # get actual len  
                       |   
-  0x0db:              | Rest1:
+  0x0db:              | extra1:
   0x0db: c082ffffffff |   iaddl $-1 , %edx
-  0x0e1: 7247010000   |   jl Done          #short circuit
-  0x0e6: 506300000000 |   mrmovl (%ebx), %esi    # read val from src...
-  0x0ec: 507304000000 |   mrmovl 4(%ebx), %edi  # read val from src...
+  0x0e1: 7247010000   |   jl Done                # Done
+  0x0e6: 506300000000 |   mrmovl (%ebx), %esi    # Take care of extras here
+  0x0ec: 507304000000 |   mrmovl 4(%ebx), %edi
   0x0f2: 406100000000 |   rmmovl %esi, (%ecx)
   0x0f8: 6266         |   andl %esi, %esi
-  0x0fa: 7105010000   |   jle Rest2
+  0x0fa: 7105010000   |   jle extra2
   0x0ff: c08001000000 |   iaddl $1, %eax
                       |   
-  0x105:              | Rest2:
+  0x105:              | extra2:
   0x105: c082ffffffff |   iaddl $-1 , %edx
   0x10b: 7247010000   |   jl Done  
   0x110: 407104000000 |   rmmovl %edi, 4(%ecx)
   0x116: 6277         |   andl %edi, %edi
-  0x118: 7123010000   |   jle Rest3
+  0x118: 7123010000   |   jle extra3
   0x11d: c08001000000 |   iaddl $1, %eax
                       | 
-  0x123:              | Rest3:
+  0x123:              | extra3:
   0x123: c082ffffffff |   iaddl $-1 , %edx
   0x129: 7247010000   |   jl Done
-  0x12e: 506308000000 |   mrmovl 8(%ebx), %esi  # read val from src...
+  0x12e: 506308000000 |   mrmovl 8(%ebx), %esi
   0x134: 406108000000 |   rmmovl %esi, 8(%ecx)
   0x13a: 6266         |   andl %esi, %esi
   0x13c: 7147010000   |   jle Done
