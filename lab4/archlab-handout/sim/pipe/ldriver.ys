@@ -14,7 +14,7 @@ main:	irmovl Stack, %esp  	# Set up stack pointer
 	pushl %eax
 	call ncopy		 
 	halt			# should halt with num nonzeros in %eax
-#/* $begin ncopy-ys */
+#
 # Kyle Weller
 # clkrbj
 # Used IADDL did not use IRMOVL
@@ -32,8 +32,8 @@ ncopy:  pushl %ebp    # Save old frame pointer
   pushl %ebx
   pushl %edi
   mrmovl 8(%ebp),%ebx  # src
-  mrmovl 16(%ebp),%edx  # len
   mrmovl 12(%ebp),%ecx  # dst
+  mrmovl 16(%ebp),%edx  # len
 
 ##################################################################
 # You can modify this portion
@@ -42,64 +42,64 @@ ncopy:  pushl %ebp    # Save old frame pointer
   andl %edx, %edx
   jle Done
   iaddl $-4, %edx       # len = len - 4 
-  jl tail
+  jl Tail
 
-loop:  
+Loop:  
   mrmovl (%ebx), %esi   # read val from src
   mrmovl 4(%ebx), %edi  # read val from src +4
   rmmovl %esi, (%ecx)   # store src[0] to dest[0]
   andl %esi, %esi       # src[0] > 0 
-  jle pos1              # yes ? goto pos1:
+  jle Pos1              # yes ? goto pos1:
   iaddl $1, %eax        # count++
 
-pos1:
+Pos1:
   rmmovl %edi, 4(%ecx)  # store src[1] in dest[1]
   andl %edi, %edi       # src[1] > 0 
-  jle pos2              # No ? get the next element
+  jle Pos2              # No ? get the next element
   iaddl $1, %eax        # count++
   
-pos2:
+Pos2:
   mrmovl 8(%ebx), %esi    # read val from src +8
   mrmovl 12(%ebx), %edi   # read val from src +12
   rmmovl %esi, 8(%ecx)    # store src[2] in dest[2]
   andl %esi, %esi         # src[2] > 0 
-  jle pos3                # No ? get the next element
+  jle Pos3                # No ? get the next element
   iaddl $1, %eax          # count++
   
-pos3:
+Pos3:
   rmmovl %edi, 12(%ecx)   # store src[3] in dest[3]
   andl %edi, %edi         # src[3] > 0 
-  jle next                # No ? get the next element
+  jle Next                # No ? get the next element
   iaddl $1, %eax          # count++
 
-next: 
+Next: 
   iaddl $16 , %ebx      # goto next four positions of src
   iaddl $16 , %ecx      # goto next four positions of dest
   iaddl $-4, %edx       # len = len - 4
-  jge loop              # if four left, do again
+  jge Loop              # if four left, do again
 
-tail:
+Tail:
   iaddl $4, %edx        # get actual len  
   
-extra1:
+Extra1:
   iaddl $-1 , %edx
   jl Done                # Done
   mrmovl (%ebx), %esi    # Take care of extras here
   mrmovl 4(%ebx), %edi
   rmmovl %esi, (%ecx)
   andl %esi, %esi
-  jle extra2
+  jle Extra2
   iaddl $1, %eax
   
-extra2:
+Extra2:
   iaddl $-1 , %edx
   jl Done  
   rmmovl %edi, 4(%ecx)
   andl %edi, %edi
-  jle extra3
+  jle Extra3
   iaddl $1, %eax
 
-extra3:
+Extra3:
   iaddl $-1 , %edx
   jl Done
   mrmovl 8(%ebx), %esi
@@ -112,16 +112,14 @@ extra3:
 # Do not modify the following section of code
 # Function epilogue.
 Done:
-  popl %edi               # Restore callee-save registers
+  popl %edi
   popl %ebx
   popl %esi
   rrmovl %ebp, %esp
   popl %ebp
   ret
 ##################################################################
-# Keep the following label at the end of your function
-End:
-#/* $end ncopy-ys */
+
 #################################################################### 
 # Epilogue code for the correctness testing driver
 ####################################################################

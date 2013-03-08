@@ -1,0 +1,167 @@
+bash-4.1$ make VERSION=full
+./gen-driver.pl -n 4 -f ncopy.ys > sdriver.ys
+../misc/yas sdriver.ys
+./gen-driver.pl -n 63 -f ncopy.ys > ldriver.ys
+../misc/yas ldriver.ys
+bash-4.1$ ../misc/yis sdriver.yo
+Stopped in 55 steps at PC = 0x2a.  Exception 'HLT', CC Z=0 S=1 O=0
+Changes to registers:
+%eax:	0x00000000	0x00000003
+%ecx:	0x00000000	0x00000270
+%edx:	0x00000000	0xffffffff
+%esp:	0x00000000	0x0000037c
+%ebp:	0x00000000	0x00000388
+
+Changes to memory:
+0x0260:	0x0000beef	0x00000000
+0x0264:	0x0000beef	0x00000001
+0x0268:	0x0000beef	0x00000002
+0x026c:	0x0000beef	0x00000003
+0x0374:	0x00000000	0x00000388
+0x0378:	0x00000000	0x00000029
+0x037c:	0x00000000	0x00000154
+0x0380:	0x00000000	0x00000260
+0x0384:	0x00000000	0x00000004
+bash-4.1$ ./correctness.pl -f ncopy.ys 
+	ncopy
+1	OK
+2	OK
+3	OK
+4	OK
+5	OK
+6	OK
+7	OK
+8	OK
+9	OK
+10	OK
+11	OK
+12	OK
+13	OK
+14	OK
+15	OK
+16	OK
+17	OK
+18	OK
+19	OK
+20	OK
+21	OK
+22	OK
+23	OK
+24	OK
+25	OK
+26	OK
+27	OK
+28	OK
+29	OK
+30	OK
+31	OK
+32	OK
+33	OK
+34	OK
+35	OK
+36	OK
+37	OK
+38	OK
+39	OK
+40	OK
+41	OK
+42	OK
+43	OK
+44	OK
+45	OK
+46	OK
+47	OK
+48	OK
+49	OK
+50	OK
+51	OK
+52	OK
+53	OK
+54	OK
+55	OK
+56	OK
+57	OK
+58	OK
+59	OK
+60	OK
+61	OK
+62	OK
+63	OK
+64	OK
+64/64 pass correctness test
+bash-4.1$ cd ../y86-code/
+bash-4.1$ make testpsim
+../pipe/psim -t asum.yo > asum.pipe
+../pipe/psim -t asumr.yo > asumr.pipe
+../pipe/psim -t cjr.yo > cjr.pipe
+../pipe/psim -t j-cc.yo > j-cc.pipe
+../pipe/psim -t poptest.yo > poptest.pipe
+../pipe/psim -t pushquestion.yo > pushquestion.pipe
+../pipe/psim -t pushtest.yo > pushtest.pipe
+../pipe/psim -t prog1.yo > prog1.pipe
+../pipe/psim -t prog2.yo > prog2.pipe
+../pipe/psim -t prog3.yo > prog3.pipe
+../pipe/psim -t prog4.yo > prog4.pipe
+../pipe/psim -t prog5.yo > prog5.pipe
+../pipe/psim -t prog6.yo > prog6.pipe
+../pipe/psim -t prog7.yo > prog7.pipe
+../pipe/psim -t prog8.yo > prog8.pipe
+../pipe/psim -t ret-hazard.yo > ret-hazard.pipe
+grep "ISA Check" *.pipe
+asum.pipe:ISA Check Succeeds
+asumr.pipe:ISA Check Succeeds
+cjr.pipe:ISA Check Succeeds
+j-cc.pipe:ISA Check Succeeds
+poptest.pipe:ISA Check Succeeds
+prog1.pipe:ISA Check Succeeds
+prog2.pipe:ISA Check Succeeds
+prog3.pipe:ISA Check Succeeds
+prog4.pipe:ISA Check Succeeds
+prog5.pipe:ISA Check Succeeds
+prog6.pipe:ISA Check Succeeds
+prog7.pipe:ISA Check Succeeds
+prog8.pipe:ISA Check Succeeds
+pushquestion.pipe:ISA Check Succeeds
+pushtest.pipe:ISA Check Succeeds
+ret-hazard.pipe:ISA Check Succeeds
+rm asum.pipe asumr.pipe cjr.pipe j-cc.pipe poptest.pipe pushquestion.pipe pushtest.pipe prog1.pipe prog2.pipe prog3.pipe prog4.pipe prog5.pipe prog6.pipe prog7.pipe prog8.pipe ret-hazard.pipe
+bash-4.1$ cd ../ptest/
+bash-4.1$ make SIM=../pipe/psim TFLAGS=-il
+./optest.pl -s ../pipe/psim -il
+Simulating with ../pipe/psim
+  All 59 ISA Checks Succeed
+./jtest.pl -s ../pipe/psim -il
+Simulating with ../pipe/psim
+  All 96 ISA Checks Succeed
+./ctest.pl -s ../pipe/psim -il
+Simulating with ../pipe/psim
+  All 36 ISA Checks Succeed
+./htest.pl -s ../pipe/psim -il
+Simulating with ../pipe/psim
+  All 672 ISA Checks Succeed
+bash-4.1$ cd ../../
+bash-4.1$ pwd
+/auto/fsh/clkrbj/Documents/324/ECEn-324/lab4/archlab-handout
+bash-4.1$ ls
+clkrbj-1-copy.ys	clkrbj-2-seq-full.hcl	clkrbj-5-ncopy.ys
+clkrbj-1-ncopy.ys	clkrbj-2-sum.ys		clkrbj-5-pipe-full.hcl
+clkrbj-1-pipe-full.hcl	clkrbj-3-copy.ys	cookie.txt
+clkrbj-1-rsum.ys	clkrbj-3-ncopy.ys	header.txt
+clkrbj-1-seq-full.hcl	clkrbj-3-pipe-full.hcl	makecookie
+clkrbj-1-sum.ys		clkrbj-3-rsum.ys	Makefile
+clkrbj-2-copy.ys	clkrbj-3-seq-full.hcl	README
+clkrbj-2-ncopy.ys	clkrbj-3-sum.ys		sim
+clkrbj-2-pipe-full.hcl	clkrbj-4-ncopy.ys	simguide.pdf
+clkrbj-2-rsum.ys	clkrbj-4-pipe-full.hcl	sim.tar
+bash-4.1$ make handin-partc TEAM=clkrbj VERSION=5
+Remember to increase VERSION!
+make: *** [handin-partc] Error 1
+bash-4.1$ make handin-partc TEAM=clkrbj VERSION=6
+cp sim/pipe/ncopy.ys clkrbj-6-ncopy.ys
+cp sim/pipe/pipe-full.hcl clkrbj-6-pipe-full.hcl
+(cat header.txt; \
+	 tar cf - clkrbj-6-ncopy.ys \
+		clkrbj-6-pipe-full.hcl | \
+	 uuencode /auto/grp2/ece324web/handin/archlab/partc/handin/clkrbj-6.tar) | \
+	 /usr/sbin/sendmail -bm ecen324@et.byu.edu
+
