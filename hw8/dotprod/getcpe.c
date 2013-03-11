@@ -230,13 +230,12 @@ void dotproduct1(vec_ptr u, vec_ptr v, data_t *dest)
 {
     long int i;
     *dest = 1.0;
-    for (i = 0; i < vec_length(u); i++)
-    {
-	data_t val1;
-	data_t val2;
-	get_vec_element(u, i, &val1);
-	get_vec_element(v, i, &val2);
-	*dest = *dest + val1 * val2;
+    for (i = 0; i < vec_length(u); i++) {
+	    data_t val1;
+	    data_t val2;
+	    get_vec_element(u, i, &val1);
+	    get_vec_element(v, i, &val2);
+	    *dest = *dest + val1 * val2;
     }
 }
 
