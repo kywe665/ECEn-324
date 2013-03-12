@@ -1,6 +1,6 @@
 # Edit the code below to use different optimization levels. 
 
-CFLAGS0 = 
+CFLAGS0 = -O1
 CFLAGS1 = -O1
 CFLAGS2 = -O2
 CFLAGS3 = -O3
