@@ -239,6 +239,107 @@ void dotproduct1(vec_ptr u, vec_ptr v, data_t *dest)
     }
 }
 
+void dotproduct2(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    for (i = 0; i < len; i++) {
+	    data_t val1;
+	    data_t val2;
+	    get_vec_element(u, i, &val1);
+	    get_vec_element(v, i, &val2);
+	    *dest = *dest + val1 * val2;
+    }
+}
+
+void dotproduct3(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    data_t *data1 = get_vec_start(u);
+    data_t *data2 = get_vec_start(v);
+
+    for (i = 0; i < len; i++) {
+	    *dest = *dest + data1[i] * data2[i];
+    }
+}
+
+void dotproduct4(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    data_t *data1 = get_vec_start(u);
+    data_t *data2 = get_vec_start(v);
+    data_t temp = 0;
+
+    for (i = 0; i < len; i++) {
+	    temp = temp + data1[i] * data2[i];
+    }
+    *dest = temp;
+}
+
+void dotproduct5(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    int limit = len -1;
+    data_t *data1 = get_vec_start(u);
+    data_t *data2 = get_vec_start(v);
+    data_t temp = 0;
+
+    for (i = 0; i < limit; i+=2) {
+	    temp = (temp + data1[i] * data2[i]) + data1[i+1]*data2[i+1];
+    }
+    for (; i < len; i++) {
+      temp = temp + data1[i] * data2[i];
+    }
+    *dest = temp;
+}
+
+void dotproduct6(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    int limit = len -1;
+    data_t *data1 = get_vec_start(u);
+    data_t *data2 = get_vec_start(v);
+    data_t temp = 0;
+    data_t temp1 = 0;
+
+    for (i = 0; i < limit; i+=2) {
+	    temp = temp + data1[i] * data2[i];
+      temp1 = temp1 + data1[i+1]*data2[i+1];
+    }
+    for (; i < len; i++) {
+      temp = temp + data1[i] * data2[i];
+    }
+    *dest = temp + temp1;
+}
+
+void dotproduct7(vec_ptr u, vec_ptr v, data_t *dest)
+{
+    long int i;
+    *dest = 1.0;
+    int len = vec_length(u);
+    int limit = len -1;
+    data_t *data1 = get_vec_start(u);
+    data_t *data2 = get_vec_start(v);
+    data_t temp = 0;
+
+    for (i = 0; i < limit; i+=2) {
+	    temp = temp + (data1[i] * data2[i] + data1[i+1]*data2[i+1]);
+    }
+    for (; i < len; i++) {
+      temp = temp + data1[i] * data2[i];
+    }
+    *dest = temp;
+}
+
 /* repeatedly calls the function to measure until the total execution
  * time (in cycles) is above specified threshold */
 unsigned measure(void)
@@ -248,10 +349,10 @@ unsigned measure(void)
     do 
     {
 	int c = cnt;
-	dotproduct1(V1,V2,&result);    /* first call to warm up cache */
+	dotproduct7(V1,V2,&result);    /* first call to warm up cache */
 	start_counter();
 	while (c-- > 0)
-	    dotproduct1(V1,V2,&result);
+	    dotproduct7(V1,V2,&result);
 	cmeas = get_counter();
 	cycles = cmeas / cnt;
 	cnt += cnt;
@@ -266,7 +367,7 @@ unsigned measure(void)
  * run through entire range of vector lengths, making repeated
  * measurements of each, then determine slope of line that best
  * matches data, and finally output results as CPE. */
-main()
+int main()
 {
     int i,j;
     unsigned ccount;
