@@ -10,11 +10,11 @@
  * Please fill in the following team struct 
  */
 team_t team = {
-    "TA Team",              /* Team name */
+    "clkrbj",     /* Team name */
 
-    "sf89",                /* First member Route-Y ID */
-    "Spencer Fowers",     /* First member full name */
-    "sf89@byu.edu",  /* First member email address */
+    "clkrbj",                /* First member Route-Y ID */
+    "Kyle Weller",     /* First member full name */
+    "kywe665@gmail.com",  /* First member email address */
 
     "",                   /* Second member Route-Y ID */
     "",                   /* Second member full name (leave blank if none) */
@@ -36,10 +36,9 @@ char naive_rotate_descr[] = "naive_rotate: Naive baseline implementation";
 void naive_rotate(int dim, pixel *src, pixel *dst) 
 {
     int i, j;
-
     for (i = 0; i < dim; i++)
-	for (j = 0; j < dim; j++)
-	    dst[RIDX(dim-1-j, i, dim)] = src[RIDX(i, j, dim)];
+	    for (j = 0; j < dim; j++)
+	      dst[RIDX(dim-1-j, i, dim)] = src[RIDX(i, j, dim)];
 }
 
 /* 
@@ -49,7 +48,24 @@ void naive_rotate(int dim, pixel *src, pixel *dst)
 char rotate_descr[] = "rotate: Current working version";
 void rotate(int dim, pixel *src, pixel *dst) 
 {
-    naive_rotate(dim, src, dst);
+  int stride = 32;
+  int count = dim >> 5;
+  src += dim - 1; 
+  int a1 = count;
+  do {
+      int a2 = dim;
+    do {
+        int a3 = stride;
+      do {
+          *dst++ = *src;
+          src += dim;
+      } while(--a3);
+      src -= dim * stride + 1;
+      dst += dim - stride;
+    } while(--a2);
+    src += dim * (stride + 1);
+    dst -= dim * dim - stride;
+  } while(--a1);
 }
 
 /*********************************************************************
@@ -134,8 +150,8 @@ static pixel avg(int dim, int i, int j, pixel *src)
 
     initialize_pixel_sum(&sum);
     for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) 
-	for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) 
-	    accumulate_sum(&sum, src[RIDX(ii, jj, dim)]);
+	    for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) 
+	      accumulate_sum(&sum, src[RIDX(ii, jj, dim)]);
 
     assign_sum_to_pixel(&current_pixel, sum);
     return current_pixel;
@@ -154,8 +170,8 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
     int i, j;
 
     for (i = 0; i < dim; i++)
-	for (j = 0; j < dim; j++)
-	    dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
+	    for (j = 0; j < dim; j++)
+	      dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
 }
 
 /*
