@@ -48,24 +48,29 @@ void naive_rotate(int dim, pixel *src, pixel *dst)
 char rotate_descr[] = "rotate: Current working version";
 void rotate(int dim, pixel *src, pixel *dst) 
 {
-  int stride = 32;
-  int count = dim >> 5;
-  src += dim - 1; 
-  int a1 = count;
-  do {
-      int a2 = dim;
-    do {
-        int a3 = stride;
-      do {
-          *dst++ = *src;
-          src += dim;
-      } while(--a3);
-      src -= dim * stride + 1;
-      dst += dim - stride;
-    } while(--a2);
-    src += dim * (stride + 1);
-    dst -= dim * dim - stride;
-  } while(--a1);
+  int i,j;
+    pixel *dptr,*sptr;
+    for(i=0;i<dim;i+=16)
+        for(j=dim-1;j>=0;j--){
+            dptr=dst+RIDX(dim-1-j,i,dim);
+            sptr=src+RIDX(i,j,dim);
+            *(dptr)=*(sptr);sptr+=dim;
+            *(dptr+1)=*(sptr);sptr+=dim;
+            *(dptr+2)=*(sptr);sptr+=dim;
+            *(dptr+3)=*(sptr);sptr+=dim;
+            *(dptr+4)=*(sptr);sptr+=dim;
+            *(dptr+5)=*(sptr);sptr+=dim;
+            *(dptr+6)=*(sptr);sptr+=dim;
+            *(dptr+7)=*(sptr);sptr+=dim;
+            *(dptr+8)=*(sptr);sptr+=dim;
+            *(dptr+9)=*(sptr);sptr+=dim;
+            *(dptr+10)=*(sptr);sptr+=dim;
+            *(dptr+11)=*(sptr);sptr+=dim;
+            *(dptr+12)=*(sptr);sptr+=dim;
+            *(dptr+13)=*(sptr);sptr+=dim;
+            *(dptr+14)=*(sptr);sptr+=dim;
+            *(dptr+15)=*(sptr);
+        }   
 }
 
 /*********************************************************************
