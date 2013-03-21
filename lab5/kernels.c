@@ -106,6 +106,13 @@ typedef struct {
     int num;
 } pixel_sum;
 
+typedef struct {
+    int red;
+    int green;
+    int blue;
+} pixel_int;
+
+
 /* Compute min and max of two integers, respectively */
 static int min(int a, int b) { return (a < b ? a : b); }
 static int max(int a, int b) { return (a > b ? a : b); }
@@ -120,10 +127,6 @@ static void initialize_pixel_sum(pixel_sum *sum)
     return;
 }
 
-/* 
- * accumulate_sum - Accumulates field values of p in corresponding 
- * fields of sum 
- */
 static void accumulate_sum(pixel_sum *sum, pixel p) 
 {
     sum->red += (int) p.red;
@@ -152,49 +155,18 @@ static pixel avg(int dim, int i, int j, pixel *src)
     int ii, jj;
     pixel_sum sum;
     pixel current_pixel;
+	 int maxI = max(i-1, 0);
+	 int maxJ = max(j-1, 0); 
+	 int minI = min(i+1, dim-1);
+	 int minJ = min(j+1, dim-1); 
 
     initialize_pixel_sum(&sum);
-    for(ii = max(i-1, 0); ii <= min(i+1, dim-1); ii++) 
-	    for(jj = max(j-1, 0); jj <= min(j+1, dim-1); jj++) 
-	      accumulate_sum(&sum, src[RIDX(ii, jj, dim)]);
+    for(ii = maxI; ii <= minI; ii++) 
+	for(jj = maxJ; jj <= minJ; jj++) 
+	    accumulate_sum(&sum, src[ii*dim+jj]);
 
     assign_sum_to_pixel(&current_pixel, sum);
     return current_pixel;
-}
-
-static void add_pixel_2(pixel_sum *sum, pixel *a, pixel *b) {
-    sum->red = a->red + b->red;
-    sum->green = a->green + b->green;
-    sum->blue = a->blue + b->blue;
-}
- 
-static void add_pixel_3(pixel_sum *sum, pixel *a, pixel *b, pixel *c) {
-    sum->red = a->red + b->red + c->red;
-    sum->green = a->green + b->green + c->green;
-    sum->blue = a->blue + b->blue + c->blue;
-}
- 
-static void do_row_sum(pixel_sum *sums, int dim, pixel *row) {
-    int i;
-    add_pixel_2(sums++, row, row+1);
-    row++;
-    for (i=1; i<dim-1; i++) {
-        add_pixel_3(sums++, row-1, row, row+1);
-        row++;
-    }
-    add_pixel_2(sums, row-1, row);
-}
- 
-static void avg_pixel_sums_2(pixel *dst, pixel_sum *a, pixel_sum *b, int num) {
-    dst->red = (a->red + b->red)/num;
-    dst->green = (a->green + b->green)/num;
-    dst->blue = (a->blue + b->blue)/num;
-}
- 
-static void avg_pixel_sums_3(pixel *dst, pixel_sum *a, pixel_sum *b, pixel_sum *c, int num) {
-    dst->red = (a->red + b->red + c->red)/num;
-    dst->green = (a->green + b->green + c->green)/num;
-    dst->blue = (a->blue + b->blue + c->blue)/num;
 }
 
 /******************************************************
@@ -211,47 +183,399 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
 
     for (i = 0; i < dim; i++)
 	    for (j = 0; j < dim; j++)
-	      dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
+	      dst[RIDX(i, j, dim)] = avg(dim, i, j, src);	  
 }
 
-/*
- * smooth - Your current working version of smooth. 
- * IMPORTANT: This is the version you will be graded on
- */
-char smooth_descr[] = "smooth: Current working version";
+static void edges(int dim, pixel *src, pixel *dst) {
+	pixel_int cache;
+	pixel result;
+	
+	cache.red = cache.green = cache.blue = 0; 
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;		
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	
+	result.red   = cache.red>>2;
+	result.green = cache.green>>2;
+	result.blue  = cache.blue>>2;
+	*dst = result;
+	dst += dim-1;
+	
+	cache.red = cache.green = cache.blue = 0; 
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;		
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=1+dim*(dim-3);
+	
+	result.red   = cache.red>>2;
+	result.green = cache.green>>2;
+	result.blue  = cache.blue>>2;
+	*dst = result;
+	dst+=1+dim*(dim-2);
+	
+	cache.red = cache.green = cache.blue = 0; 
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src-=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim-1;
+	
+	result.red   = cache.red>>2;
+	result.green = cache.green>>2;
+	result.blue  = cache.blue>>2;
+	*dst = result;	
+	dst+=dim-1;
+	
+	cache.red = cache.green = cache.blue = 0; 
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	
+	result.red   = cache.red>>2;
+	result.green = cache.green>>2;
+	result.blue  = cache.blue>>2;
+	*dst = result;	
+}
+
+static void top(int pos,int dim,pixel *src,pixel *dst) {
+	pixel_int cache;
+	pixel result;
+	cache.red = cache.green = cache.blue = 0; 
+	
+	src += pos;
+	dst += pos;
+	
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src-=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	
+	result.red   = cache.red/6;
+	result.green = cache.green/6;
+	result.blue  = cache.blue/6;
+	*dst = result;	
+}
+
+static void left(int pos,int dim,pixel *src,pixel *dst) {
+	pixel_int cache;
+	pixel result;
+	cache.red = cache.green = cache.blue = 0; 
+	
+	src += pos;
+	dst += pos;
+	
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src-=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	
+	result.red   = cache.red/6;
+	result.green = cache.green/6;
+	result.blue  = cache.blue/6;
+	*dst = result;	
+}
+
+static void bottom(int pos,int dim,pixel *src,pixel *dst) {
+	pixel_int cache;
+	pixel result;
+	cache.red = cache.green = cache.blue = 0; 
+	
+	src += pos;
+	dst += pos;
+	
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src-=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	
+	result.red   = cache.red/6;
+	result.green = cache.green/6;
+	result.blue  = cache.blue/6;
+	*dst = result;	
+}
+
+static void right(int pos,int dim,pixel *src,pixel *dst) {
+	pixel_int cache;
+	pixel result;
+	cache.red = cache.green = cache.blue = 0; 
+	
+	src += pos;
+	dst += pos;
+	
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src-=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src--;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src+=dim;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	src++;
+	cache.red   += src->red;
+	cache.green += src->green;
+	cache.blue  += src->blue;	
+	
+	result.red   = cache.red/6;
+	result.green = cache.green/6;
+	result.blue  = cache.blue/6;
+	*dst = result;	
+}
+
+char smooth_descr[] = "smooth: the good one";
 void smooth(int dim, pixel *src, pixel *dst) 
 {
-    pixel_sum *row_sums = malloc(3*dim*sizeof(pixel_sum));
-    pixel_sum *r0 = row_sums;
-    pixel_sum *r1 = r0+dim;
-    pixel_sum *r2;
-    int i, j;
- 
-    do_row_sum(r0, dim, src);
-    do_row_sum(r1, dim, src+dim);
-    avg_pixel_sums_2(dst++, r0++, r1++, 4);
-    for (i=1; i<dim-1; i++)
-        avg_pixel_sums_2(dst++, r0++, r1++, 6);
-    avg_pixel_sums_2(dst++, r0, r1, 4);
- 
-    for (i=1; i<dim-1; i++) {
-        r0 = row_sums+((i-1)%3)*dim;
-        r1 = row_sums+(i%3)*dim;
-        r2 = row_sums+((i+1)%3)*dim;
-        do_row_sum(r2, dim, src+(i+1)*dim);
-        avg_pixel_sums_3(dst++, r0++, r1++, r2++, 6);
-        for (j=1; j<dim-1; j++)
-            avg_pixel_sums_3(dst++, r0++, r1++, r2++, 9);
-        avg_pixel_sums_3(dst++, r0, r1, r2, 6);
-    }
-
-    r0 = row_sums+((i-1)%3)*dim;
-    r1 = row_sums+(i%3)*dim;
-    avg_pixel_sums_2(dst++, r0++, r1++, 4);
-    for (i=1; i<dim-1; i++)
-        avg_pixel_sums_2(dst++, r0++, r1++, 6);
-    avg_pixel_sums_2(dst, r0, r1, 4);
-    free(row_sums);
+	int i,j;
+	int temp;
+	
+	temp = dim*dim-dim;
+	
+	edges(dim,src,dst);
+	
+	for(j = 1;j < dim-1;j++) {
+		top(j,dim,src,dst);
+		bottom((dim-1)*dim+j,dim,src,dst);
+	}
+	
+	for(i = 1;i < dim-1;i++) {
+		left(i*dim,dim,src,dst);
+		right(i*dim+dim-1,dim,src,dst);
+	}
+	
+	temp = dim;
+	
+	pixel_int tleft;
+	pixel_int tright;
+	pixel_int bleft;
+	pixel_int bright;
+	dst+=1+dim;
+	src+=1+dim;
+	
+	for(i = 1;i < dim-1; i+=2) {  
+		for(j = 1;j < dim-1;j+=2) {
+	
+			tleft.red = src->red;
+			tleft.green = src->green;
+			tleft.blue = src->blue; 
+			src++;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			src+=dim;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			src--;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			src--;
+			tright = bleft = bright = tleft;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			src-=dim;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			bleft = tleft;
+			src-=dim;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			src++;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			tright.red += src->red;
+			tright.green += src->green;
+			tright.blue += src->blue; 
+			src++;
+			tleft.red += src->red;
+			tleft.green += src->green;
+			tleft.blue += src->blue; 
+			tright.red += src->red;
+			tright.green += src->green;
+			tright.blue += src->blue; 
+			src++;	
+			tright.red += src->red;
+			tright.green += src->green;
+			tright.blue += src->blue; 	
+			src+=dim;
+			bright.red += src->red;
+			bright.green += src->green;
+			bright.blue += src->blue; 
+			tright.red += src->red;
+			tright.green += src->green;
+			tright.blue += src->blue; 
+			src+=dim;
+			bright.red += src->red;
+			bright.green += src->green;
+			bright.blue += src->blue; 
+			tright.red += src->red;
+			tright.green += src->green;
+			tright.blue += src->blue; 
+			src+=dim;
+			bright.red += src->red;
+			bright.green += src->green;
+			bright.blue += src->blue; 
+			src--;
+			bright.red += src->red;
+			bright.green += src->green;
+			bright.blue += src->blue; 
+			bleft.red += src->red;
+			bleft.green += src->green;
+			bleft.blue += src->blue; 
+			src--;
+			bright.red += src->red;
+			bright.green += src->green;
+			bright.blue += src->blue; 
+			bleft.red += src->red;
+			bleft.green += src->green;
+			bleft.blue += src->blue; 
+			src--;
+			bleft.red += src->red;
+			bleft.green += src->green;
+			bleft.blue += src->blue; 
+			src-=2*dim-3;
+			
+			dst->red   = tleft.red/9;
+			dst->green = tleft.green/9;
+			dst->blue  = tleft.blue/9; 
+			dst+=dim;
+			dst->red   = bleft.red/9;
+			dst->green = bleft.green/9;
+			dst->blue  = bleft.blue/9; 
+			dst++;
+			dst->red   = bright.red/9;
+			dst->green = bright.green/9;
+			dst->blue  = bright.blue/9; 
+			dst-=dim;
+			dst->red   = tright.red/9;
+			dst->green = tright.green/9;
+			dst->blue  = tright.blue/9; 
+			dst++;
+		
+		}
+		src+=2+dim;
+		dst+=2+dim;
+	}
+	
 }
 
 
