@@ -162,6 +162,41 @@ static pixel avg(int dim, int i, int j, pixel *src)
     return current_pixel;
 }
 
+static void add_pixel_2(pixel_sum *sum, pixel *a, pixel *b) {
+    sum->red = a->red + b->red;
+    sum->green = a->green + b->green;
+    sum->blue = a->blue + b->blue;
+}
+ 
+static void add_pixel_3(pixel_sum *sum, pixel *a, pixel *b, pixel *c) {
+    sum->red = a->red + b->red + c->red;
+    sum->green = a->green + b->green + c->green;
+    sum->blue = a->blue + b->blue + c->blue;
+}
+ 
+static void do_row_sum(pixel_sum *sums, int dim, pixel *row) {
+    int i;
+    add_pixel_2(sums++, row, row+1);
+    row++;
+    for (i=1; i<dim-1; i++) {
+        add_pixel_3(sums++, row-1, row, row+1);
+        row++;
+    }
+    add_pixel_2(sums, row-1, row);
+}
+ 
+static void avg_pixel_sums_2(pixel *dst, pixel_sum *a, pixel_sum *b, int num) {
+    dst->red = (a->red + b->red)/num;
+    dst->green = (a->green + b->green)/num;
+    dst->blue = (a->blue + b->blue)/num;
+}
+ 
+static void avg_pixel_sums_3(pixel *dst, pixel_sum *a, pixel_sum *b, pixel_sum *c, int num) {
+    dst->red = (a->red + b->red + c->red)/num;
+    dst->green = (a->green + b->green + c->green)/num;
+    dst->blue = (a->blue + b->blue + c->blue)/num;
+}
+
 /******************************************************
  * Your different versions of the smooth kernel go here
  ******************************************************/
@@ -186,7 +221,37 @@ void naive_smooth(int dim, pixel *src, pixel *dst)
 char smooth_descr[] = "smooth: Current working version";
 void smooth(int dim, pixel *src, pixel *dst) 
 {
-    naive_smooth(dim, src, dst);
+    pixel_sum *row_sums = malloc(3*dim*sizeof(pixel_sum));
+    pixel_sum *r0 = row_sums;
+    pixel_sum *r1 = r0+dim;
+    pixel_sum *r2;
+    int i, j;
+ 
+    do_row_sum(r0, dim, src);
+    do_row_sum(r1, dim, src+dim);
+    avg_pixel_sums_2(dst++, r0++, r1++, 4);
+    for (i=1; i<dim-1; i++)
+        avg_pixel_sums_2(dst++, r0++, r1++, 6);
+    avg_pixel_sums_2(dst++, r0, r1, 4);
+ 
+    for (i=1; i<dim-1; i++) {
+        r0 = row_sums+((i-1)%3)*dim;
+        r1 = row_sums+(i%3)*dim;
+        r2 = row_sums+((i+1)%3)*dim;
+        do_row_sum(r2, dim, src+(i+1)*dim);
+        avg_pixel_sums_3(dst++, r0++, r1++, r2++, 6);
+        for (j=1; j<dim-1; j++)
+            avg_pixel_sums_3(dst++, r0++, r1++, r2++, 9);
+        avg_pixel_sums_3(dst++, r0, r1, r2, 6);
+    }
+
+    r0 = row_sums+((i-1)%3)*dim;
+    r1 = row_sums+(i%3)*dim;
+    avg_pixel_sums_2(dst++, r0++, r1++, 4);
+    for (i=1; i<dim-1; i++)
+        avg_pixel_sums_2(dst++, r0++, r1++, 6);
+    avg_pixel_sums_2(dst, r0, r1, 4);
+    free(row_sums);
 }
 
 
